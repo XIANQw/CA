@@ -1,0 +1,7 @@
+	BRANCH L1
+L1:	CONST 8
+	PUSH
+	CONST 1
+	PRIM +
+	STOP
+    

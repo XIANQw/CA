@@ -1,0 +1,83 @@
+pc=0  accu=0  sp=0 extra_args=0 trap_sp=0 stack=[]  env=<>
+BRANCH 15
+pc=15  accu=0  sp=0 extra_args=0 trap_sp=0 stack=[]  env=<>
+CLOSUREREC 2, 0
+pc=18  accu={ 2, <2> }  sp=1 extra_args=0 trap_sp=0 stack=[{ 2, <2> }]  env=<>
+CONST 3
+pc=20  accu=3  sp=1 extra_args=0 trap_sp=0 stack=[{ 2, <2> }]  env=<>
+PUSH
+pc=21  accu=3  sp=2 extra_args=0 trap_sp=0 stack=[3;{ 2, <2> }]  env=<>
+ACC 1
+pc=23  accu={ 2, <2> }  sp=2 extra_args=0 trap_sp=0 stack=[3;{ 2, <2> }]  env=<>
+APPLY 1
+pc=2  accu={ 2, <2> }  sp=5 extra_args=0 trap_sp=0 stack=[3;0;25;<>;{ 2, <2> }]  env=<2>
+ACC 0
+pc=4  accu=3  sp=5 extra_args=0 trap_sp=0 stack=[3;0;25;<>;{ 2, <2> }]  env=<2>
+PUSH
+pc=5  accu=3  sp=6 extra_args=0 trap_sp=0 stack=[3;3;0;25;<>;{ 2, <2> }]  env=<2>
+CONST 10
+pc=7  accu=10  sp=6 extra_args=0 trap_sp=0 stack=[3;3;0;25;<>;{ 2, <2> }]  env=<2>
+PRIM le
+pc=9  accu=0  sp=5 extra_args=0 trap_sp=0 stack=[3;0;25;<>;{ 2, <2> }]  env=<2>
+BRANCHIFNOT 27
+pc=27  accu=0  sp=5 extra_args=0 trap_sp=0 stack=[3;0;25;<>;{ 2, <2> }]  env=<2>
+ACC 0
+pc=29  accu=3  sp=5 extra_args=0 trap_sp=0 stack=[3;0;25;<>;{ 2, <2> }]  env=<2>
+PUSH
+pc=30  accu=3  sp=6 extra_args=0 trap_sp=0 stack=[3;3;0;25;<>;{ 2, <2> }]  env=<2>
+CONST 3
+pc=32  accu=3  sp=6 extra_args=0 trap_sp=0 stack=[3;3;0;25;<>;{ 2, <2> }]  env=<2>
+PRIM +
+pc=34  accu=6  sp=5 extra_args=0 trap_sp=0 stack=[3;0;25;<>;{ 2, <2> }]  env=<2>
+PUSH
+pc=35  accu=6  sp=6 extra_args=0 trap_sp=0 stack=[6;3;0;25;<>;{ 2, <2> }]  env=<2>
+OFFSETCLOSURE
+pc=36  accu={ 2, <2> }  sp=6 extra_args=0 trap_sp=0 stack=[6;3;0;25;<>;{ 2, <2> }]  env=<2>
+APPLY 1
+pc=2  accu={ 2, <2> }  sp=9 extra_args=0 trap_sp=0 stack=[6;0;38;<2>;3;0;25;<>;{ 2, <2> }]  env=<2>
+ACC 0
+pc=4  accu=6  sp=9 extra_args=0 trap_sp=0 stack=[6;0;38;<2>;3;0;25;<>;{ 2, <2> }]  env=<2>
+PUSH
+pc=5  accu=6  sp=10 extra_args=0 trap_sp=0 stack=[6;6;0;38;<2>;3;0;25;<>;{ 2, <2> }]  env=<2>
+CONST 10
+pc=7  accu=10  sp=10 extra_args=0 trap_sp=0 stack=[6;6;0;38;<2>;3;0;25;<>;{ 2, <2> }]  env=<2>
+PRIM le
+pc=9  accu=0  sp=9 extra_args=0 trap_sp=0 stack=[6;0;38;<2>;3;0;25;<>;{ 2, <2> }]  env=<2>
+BRANCHIFNOT 27
+pc=27  accu=0  sp=9 extra_args=0 trap_sp=0 stack=[6;0;38;<2>;3;0;25;<>;{ 2, <2> }]  env=<2>
+ACC 0
+pc=29  accu=6  sp=9 extra_args=0 trap_sp=0 stack=[6;0;38;<2>;3;0;25;<>;{ 2, <2> }]  env=<2>
+PUSH
+pc=30  accu=6  sp=10 extra_args=0 trap_sp=0 stack=[6;6;0;38;<2>;3;0;25;<>;{ 2, <2> }]  env=<2>
+CONST 3
+pc=32  accu=3  sp=10 extra_args=0 trap_sp=0 stack=[6;6;0;38;<2>;3;0;25;<>;{ 2, <2> }]  env=<2>
+PRIM +
+pc=34  accu=9  sp=9 extra_args=0 trap_sp=0 stack=[6;0;38;<2>;3;0;25;<>;{ 2, <2> }]  env=<2>
+PUSH
+pc=35  accu=9  sp=10 extra_args=0 trap_sp=0 stack=[9;6;0;38;<2>;3;0;25;<>;{ 2, <2> }]  env=<2>
+OFFSETCLOSURE
+pc=36  accu={ 2, <2> }  sp=10 extra_args=0 trap_sp=0 stack=[9;6;0;38;<2>;3;0;25;<>;{ 2, <2> }]  env=<2>
+APPLY 1
+pc=2  accu={ 2, <2> }  sp=13 extra_args=0 trap_sp=0 stack=[9;0;38;<2>;6;0;38;<2>;3;0;25;<>;{ 2, <2> }]  env=<2>
+ACC 0
+pc=4  accu=9  sp=13 extra_args=0 trap_sp=0 stack=[9;0;38;<2>;6;0;38;<2>;3;0;25;<>;{ 2, <2> }]  env=<2>
+PUSH
+pc=5  accu=9  sp=14 extra_args=0 trap_sp=0 stack=[9;9;0;38;<2>;6;0;38;<2>;3;0;25;<>;{ 2, <2> }]  env=<2>
+CONST 10
+pc=7  accu=10  sp=14 extra_args=0 trap_sp=0 stack=[9;9;0;38;<2>;6;0;38;<2>;3;0;25;<>;{ 2, <2> }]  env=<2>
+PRIM le
+pc=9  accu=0  sp=13 extra_args=0 trap_sp=0 stack=[9;0;38;<2>;6;0;38;<2>;3;0;25;<>;{ 2, <2> }]  env=<2>
+BRANCHIFNOT 27
+pc=27  accu=0  sp=13 extra_args=0 trap_sp=0 stack=[9;0;38;<2>;6;0;38;<2>;3;0;25;<>;{ 2, <2> }]  env=<2>
+ACC 0
+pc=29  accu=9  sp=13 extra_args=0 trap_sp=0 stack=[9;0;38;<2>;6;0;38;<2>;3;0;25;<>;{ 2, <2> }]  env=<2>
+PUSH
+pc=30  accu=9  sp=14 extra_args=0 trap_sp=0 stack=[9;9;0;38;<2>;6;0;38;<2>;3;0;25;<>;{ 2, <2> }]  env=<2>
+CONST 3
+pc=32  accu=3  sp=14 extra_args=0 trap_sp=0 stack=[9;9;0;38;<2>;6;0;38;<2>;3;0;25;<>;{ 2, <2> }]  env=<2>
+PRIM +
+pc=34  accu=12  sp=13 extra_args=0 trap_sp=0 stack=[9;0;38;<2>;6;0;38;<2>;3;0;25;<>;{ 2, <2> }]  env=<2>
+PUSH
+pc=35  accu=12  sp=14 extra_args=0 trap_sp=0 stack=[12;9;0;38;<2>;6;0;38;<2>;3;0;25;<>;{ 2, <2> }]  env=<2>
+OFFSETCLOSURE
+pc=36  accu={ 2, <2> }  sp=14 extra_args=0 tra

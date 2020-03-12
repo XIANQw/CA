@@ -1,0 +1,26 @@
+    BRANCH L2
+L1: ACC 0
+    PUSH
+    CONST 10
+    PRIM <=
+    BRANCHIFNOT L3
+    CONST 0
+    RETURN 1
+L3: ACC 0
+    PUSH
+    CONST 3
+    PRIM +
+    PUSH
+    OFFSETCLOSURE
+    APPLY 1
+    PUSH
+    CONST 1
+    PRIM +
+    RETURN 1
+L2: CLOSUREREC L1, 0
+    CONST 3
+    PUSH
+    ACC 1
+    APPLY 1
+    POP
+    STOP
