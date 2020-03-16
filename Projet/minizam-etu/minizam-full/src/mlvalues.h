@@ -48,12 +48,31 @@ bits  63    10 9     8 7   0
 #define Env_closure(c)  Field1(c)
 
 mlvalue make_empty_block(tag_t tag);
-mlvalue make_block(size_t size, tag_t tag);
+#define Make_empty_block(accu, tag) \
+        accu = caml_alloc(sizeof(mlvalue)); \
+        Ptr_val(accu)[0] = Make_header(0, WHITE, tag); \
+        accu = Val_ptr(Ptr_val(accu)+1)
 
-#define Make_empty_env() make_empty_block(ENV_T)
-#define Make_env(size) make_block(size,ENV_T)
+mlvalue make_block(size_t size, tag_t tag);
+#define Make_block(accu, size, tag) \
+        accu = caml_alloc((size+1) * sizeof(mlvalue)); \
+        Ptr_val(accu)[0] = Make_header(size, WHITE, tag);\
+        accu = Val_ptr(Ptr_val(accu)+1)
+
+
+//#define Make_empty_env() make_empty_block(ENV_T)
+#define Make_empty_env(env) Make_empty_block(env, ENV_T)
+// #define Make_env(size) make_block(size,ENV_T)
+#define Make_env(env, size) Make_block(env, size, ENV_T)
 
 mlvalue make_closure(uint64_t addr, mlvalue env);
+#define Make_closure(accu, addr, env) \
+        accu = caml_alloc(3 * sizeof(mlvalue)); \
+        Ptr_val(accu)[0] = Make_header(2, WHITE, CLOSURE_T); \
+        Ptr_val(accu)[1] = Val_long(addr); \
+        Ptr_val(accu)[2] = env; \
+        accu = Val_ptr(Ptr_val(accu)+1)
+
 
 #define Unit Val_long(0)
 

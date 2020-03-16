@@ -16,14 +16,15 @@
    postfix ++ in PUSH. */
 #define POP_STACK() stack[--sp]
 #define PUSH_STACK(x) stack[sp++] = x
-#define DEBUG
+// #define DEBUG
 
 
 mlvalue caml_interprete(code_t* prog) {
 
   mlvalue* stack = Caml_state->stack;
   mlvalue accu = Val_long(0);
-  mlvalue env = Make_empty_env();
+  // mlvalue env = Make_empty_env();
+  mlvalue env; Make_empty_env(env);
 
   register unsigned int sp = 0;
   register unsigned int pc = 0;
@@ -206,7 +207,9 @@ mlvalue caml_interprete(code_t* prog) {
       if (extra_args >= n) {
         extra_args -= n;
       } else {
-        mlvalue closure_env = Make_env(extra_args + 2);
+        // mlvalue closure_env = Make_env(extra_args + 2);
+        mlvalue closure_env;
+        Make_env(closure_env, extra_args + 2);
         Field(closure_env,0) = env;
         for (unsigned int i = 0; i <= extra_args; i++) {
           Field(closure_env,i+1) = POP_STACK();
@@ -218,19 +221,23 @@ mlvalue caml_interprete(code_t* prog) {
       }
       break;
     }
-
+  
     case CLOSURE: {
       uint64_t addr = prog[pc++];
       uint64_t n = prog[pc++];
       if (n > 0) {
         PUSH_STACK(accu);
       }
-      mlvalue closure_env = Make_env(n+1);
+      Make_closure(accu, addr, env);
+      mlvalue closure_env;
+      Make_env(closure_env, n+1);
+      // mlvalue closure_env = Make_env(n+1);
       Field(closure_env,0) = Val_long(addr);
       for (uint64_t i = 0; i < n; i++) {
         Field(closure_env,i+1) = POP_STACK();
       }
-      accu = make_closure(addr,closure_env);
+      // accu = make_closure(addr,closure_env);
+      Field(accu,1) = closure_env;
       break;
     }
 
@@ -240,12 +247,16 @@ mlvalue caml_interprete(code_t* prog) {
       if (n > 0) {
         PUSH_STACK(accu);
       }
-      mlvalue closure_env = Make_env(n+1);
+      // mlvalue closure_env = Make_env(n+1);
+      Make_closure(accu, addr, env);
+      mlvalue closure_env;
+      Make_env(closure_env, n+1);
       Field(closure_env,0) = Val_long(addr);
       for (uint64_t i = 0; i < n; i++) {
         Field(closure_env,i+1) = POP_STACK();
       }
-      accu = make_closure(addr,closure_env);
+      // accu = make_closure(addr,closure_env);
+      Field(accu, 1) = closure_env;
       PUSH_STACK(accu);
       break;
     }
@@ -257,16 +268,16 @@ mlvalue caml_interprete(code_t* prog) {
 
     case MAKEBLOCK: {
       uint64_t n = prog[pc++];
-      mlvalue blk = make_block(n,BLOCK_T);
+      mlvalue tmp = accu;
+      Make_block(accu, n, BLOCK_T);
       if (n > 0) {
-        Field(blk,0) = accu;
+        Field(accu,0) = tmp;
         for (unsigned int i = 1; i < n; i++) {
-          Field(blk, i) = POP_STACK();
+          Field(accu, i) = POP_STACK();
         }
       }
-      accu = blk;
       break;
-    }
+    }    
 
     case GETFIELD: {
       uint64_t n = prog[pc++];
