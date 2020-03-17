@@ -7,7 +7,9 @@
 typedef struct _caml_domain_state {
   /* Stack */
   mlvalue* stack;
-
+  mlvalue* heap_a;
+  mlvalue* heap_b;
+  int alloc_ptr;
 } caml_domain_state;
 
 /* The global state */
