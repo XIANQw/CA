@@ -34,8 +34,12 @@ mlvalue caml_interprete(code_t* prog) {
   while(1) {
 
 #ifdef DEBUG
+      // printf("pc=%d accu=%s sp=%d extra_args=%d trap_sp=%d\n",
+      //        pc, val_to_str(accu), sp, extra_args, trap_sp);
+      
       printf("pc=%d  accu=%s  sp=%d extra_args=%d trap_sp=%d stack=[",
              pc, val_to_str(accu), sp, extra_args, trap_sp);
+
       if (sp > 0) {
         printf("%s", val_to_str(stack[sp-1]));
       }
@@ -43,9 +47,9 @@ mlvalue caml_interprete(code_t* prog) {
         printf(";%s", val_to_str(stack[i]));
       }
       printf("]  env=%s\n", val_to_str(env));
+      
       print_instr(prog, pc);
 #endif
-
     switch (prog[pc++]) {
     case CONST:
       accu = Val_long(prog[pc++]);
@@ -218,7 +222,14 @@ mlvalue caml_interprete(code_t* prog) {
     }
 
     case OFFSETCLOSURE: {
-      accu = make_closure(Long_val(Field(env,0)), env);
+      // accu = make_closure(Long_val(Field(env,0)), env);
+      // Make_closure(accu, Long_val(Field(env,0)), env);
+      accu = caml_alloc(3 * sizeof(mlvalue)); 
+      mlvalue head = Make_header(2, WHITE, CLOSURE_T);
+      Field(accu, 0) =  head;
+      Field(accu, 1) = Val_long((((uint64_t)((((mlvalue*)(env))[0]))) >> 1)); 
+      Field(accu, 2) = env;
+      accu = Val_ptr(Ptr_val(accu)+1);
       break;
     }
 
@@ -233,7 +244,7 @@ mlvalue caml_interprete(code_t* prog) {
         }
       }
       break;
-    }    
+    }
 
     case GETFIELD: {
       uint64_t n = prog[pc++];

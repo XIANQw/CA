@@ -50,13 +50,13 @@ bits  63    10 9     8 7   0
 mlvalue make_empty_block(tag_t tag);
 #define Make_empty_block(accu, tag) \
         accu = caml_alloc(sizeof(mlvalue)); \
-        Ptr_val(accu)[0] = Make_header(0, WHITE, tag); \
+        Field(accu, 0) = Make_header(0, WHITE, tag); \
         accu = Val_ptr(Ptr_val(accu)+1)
 
 mlvalue make_block(size_t size, tag_t tag);
 #define Make_block(accu, size, tag) \
         accu = caml_alloc((size+1) * sizeof(mlvalue)); \
-        Ptr_val(accu)[0] = Make_header(size, WHITE, tag);\
+        Field(accu, 0) = Make_header(size, WHITE, tag);\
         accu = Val_ptr(Ptr_val(accu)+1)
 
 
@@ -68,9 +68,9 @@ mlvalue make_block(size_t size, tag_t tag);
 mlvalue make_closure(uint64_t addr, mlvalue env);
 #define Make_closure(accu, addr, env) \
         accu = caml_alloc(3 * sizeof(mlvalue)); \
-        Ptr_val(accu)[0] = Make_header(2, WHITE, CLOSURE_T); \
-        Ptr_val(accu)[1] = Val_long(addr); \
-        Ptr_val(accu)[2] = env; \
+        Field(accu, 0) = Make_header(2, WHITE, CLOSURE_T); \
+        Field(accu, 1) = Val_long(addr); \
+        Field(accu, 2) = env; \
         accu = Val_ptr(Ptr_val(accu)+1)
 
 
