@@ -18,10 +18,8 @@ int gc(unsigned int sp, mlvalue * stack){
     Caml_state->heap_b = tmp;
     Caml_state->alloc_ptr = 0;
     mlvalue new_object;
-    
     new_object = copy_obj(Caml_state->env);
     Caml_state->env = new_object;
-
     for(unsigned int i=0; i < sp; i++){
         stack[i] = copy_obj(stack[i]);
     }

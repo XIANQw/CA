@@ -8,19 +8,19 @@
 #include "primitives.h"
 
 mlvalue make_empty_block(tag_t tag) {
-  mlvalue* block = caml_alloc(2 * sizeof(mlvalue));
+  mlvalue* block = caml_alloc(2);
   block[0] = Make_header(0, WHITE, tag);
   return Val_ptr(block+1);
 }
 
 mlvalue make_block(size_t size, tag_t tag) {
-  mlvalue* block = caml_alloc((size+2) * sizeof(mlvalue));
+  mlvalue* block = caml_alloc((size+2));
   block[0] = Make_header(size, WHITE, tag);
   return Val_ptr(block+1);
 }
 
 mlvalue make_closure(uint64_t addr, mlvalue env) {
-  mlvalue* block = caml_alloc(4 * sizeof(mlvalue));
+  mlvalue* block = caml_alloc(4);
   block[0] = Make_header(2, WHITE, CLOSURE_T);
   block[1] = Val_long(addr);
   block[2] = env;
