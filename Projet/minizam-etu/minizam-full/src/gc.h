@@ -3,6 +3,6 @@
 
 #include "mlvalues.h"
 
-int gc(unsigned int sp, mlvalue * stack);
+int gc(size_t new_heap_size);
 mlvalue copy_obj(mlvalue obj);
 #endif

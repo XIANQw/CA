@@ -1,26 +1,34 @@
 #include <stdlib.h>
 
 #include "alloc.h"
+#include "config.h"
 #include "mlvalues.h"
 #include "domain_state.h"
 #include <stdio.h>
 #include "gc.h"
 
-#define SIZE Caml_state->heap_size
+size_t next_size = (size_t)(Heap_size/sizeof(mlvalue));
 
-mlvalue* caml_alloc(size_t size) { 
-  if(Caml_state->alloc_ptr + size > SIZE){ 
-    printf("Heap full, gc start\n");
-    gc(Caml_state->sp, Caml_state->stack);
-    printf("Gc finish, alloc_ptr=%ld\n", Caml_state->alloc_ptr);
-    if(Caml_state->alloc_ptr + size > SIZE){
-      printf("After gc, alloc_ptr= %ld ,heap full\n", Caml_state->alloc_ptr);
-      exit(0);
-    }
+mlvalue* caml_alloc(size_t size) {
+  int had_gc = 0;
+  while (Caml_state->alloc_ptr + size > SIZE){
+    // printf("Heap full, size=%ld, next_size=%ld\n", SIZE, next_size);
+    SIZE = next_size;
+    gc(SIZE);
+    had_gc = 1;
+    // printf("Gc: alloc_ptr=%ld, size=%ld, SIZE=%ld\n", Caml_state->alloc_ptr, size, SIZE);
+    if(Caml_state->alloc_ptr + size > SIZE) next_size = (size_t)(SIZE*1.5);
+  }
+  if(had_gc && Caml_state->alloc_ptr >= SIZE/2){
+    // printf("alloc_ptr=%ld>=%ld\n", Caml_state->alloc_ptr, SIZE/2);
+    // next_size = (size_t)(SIZE*1.5);
+  }
+  else if(had_gc && Caml_state->alloc_ptr < SIZE/2){
+    // printf("alloc_ptr=%ld<%ld\n", Caml_state->alloc_ptr, SIZE/2);
+    // next_size = (size_t)(SIZE/1.5);
   }
   mlvalue * res = Caml_state->heap_a + Caml_state->alloc_ptr;
   Caml_state->alloc_ptr += size;
-  // printf("allocate=%ld, aptr=%ld, rest=%ld\n", size, Caml_state->alloc_ptr, SIZE - Caml_state->alloc_ptr);
   return res;
 }
 

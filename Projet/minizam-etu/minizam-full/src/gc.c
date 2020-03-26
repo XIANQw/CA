@@ -11,11 +11,15 @@
     然后把老的block改成 [size+color+FWD_PTR_T|0, 1, 2, 3, newptr]. 这样对于之后stack上指向老objet的指针, 只需要让他的值变成老指针值向的值, 即new pointer.
 */
 
-int gc(unsigned int sp, mlvalue * stack){
 
-    mlvalue * tmp = Caml_state->heap_a;
-    Caml_state->heap_a = Caml_state->heap_b;
-    Caml_state->heap_b = tmp;
+int gc(size_t new_heap_size){
+    unsigned int sp = Caml_state->sp;
+    mlvalue * stack = Caml_state->stack;
+
+    mlvalue * tmp = Caml_state->heap_b;
+    free(tmp);
+    Caml_state->heap_b = Caml_state->heap_a;
+    Caml_state->heap_a = malloc(new_heap_size * sizeof(mlvalue));
     Caml_state->alloc_ptr = 0;
     mlvalue new_object;
     new_object = copy_obj(Caml_state->env);
