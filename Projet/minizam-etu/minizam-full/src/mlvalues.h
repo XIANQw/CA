@@ -2,16 +2,16 @@
 #define _MLVALUES_H
 
 #include <stdint.h>
+#include <stdlib.h>
 
 typedef int64_t mlvalue;
 typedef uint64_t header_t;
 typedef enum { WHITE, GRAY, BLACK } color_t;
-typedef enum { ENV_T, CLOSURE_T, BLOCK_T } tag_t;
+typedef enum { ENV_T, CLOSURE_T, BLOCK_T, FWD_PTR_T } tag_t;
 
 /* If a mlvalue ends with 1, it's an integer, otherwise it's a pointer. */
 #define Is_long(v)  (((v) & 1) != 0)
 #define Is_block(v) (((v) & 1) == 0)
-
 #define Val_long(v) (((v) << 1) + 1)
 #define Long_val(v) (((uint64_t)(v)) >> 1)
 
@@ -46,16 +46,24 @@ bits  63    10 9     8 7   0
 
 #define Addr_closure(c) Long_val(Field0(c))
 #define Env_closure(c)  Field1(c)
+#define New_ptr(block) Field(block, Size(block))
+
+/* Structure of block:
+     +--------+------+--------+
+     | header | data | newptr |
+     +--------+------+--------+
+index-1       0      size   size+1
+*/
 
 mlvalue make_empty_block(tag_t tag);
 #define Make_empty_block(accu, tag) \
-        accu = caml_alloc(sizeof(mlvalue)); \
+        accu = caml_alloc(2 * sizeof(mlvalue)); \
         Field(accu, 0) = Make_header(0, WHITE, tag); \
         accu = Val_ptr(Ptr_val(accu)+1)
 
 mlvalue make_block(size_t size, tag_t tag);
 #define Make_block(accu, size, tag) \
-        accu = caml_alloc((size+1) * sizeof(mlvalue)); \
+        accu = caml_alloc((size+2) * sizeof(mlvalue)); \
         Field(accu, 0) = Make_header(size, WHITE, tag);\
         accu = Val_ptr(Ptr_val(accu)+1)
 
@@ -67,7 +75,7 @@ mlvalue make_block(size_t size, tag_t tag);
 
 mlvalue make_closure(uint64_t addr, mlvalue env);
 #define Make_closure(accu, addr, env) \
-        accu = caml_alloc(3 * sizeof(mlvalue)); \
+        accu = caml_alloc(4 * sizeof(mlvalue)); \
         Field(accu, 0) = Make_header(2, WHITE, CLOSURE_T); \
         Field(accu, 1) = Val_long(addr); \
         Field(accu, 2) = env; \
@@ -79,7 +87,6 @@ mlvalue make_closure(uint64_t addr, mlvalue env);
 
 void print_val(mlvalue val);
 char* val_to_str(mlvalue val);
-
 
 /* A bytecode is represented as a uint64_t. */
 typedef uint64_t code_t;

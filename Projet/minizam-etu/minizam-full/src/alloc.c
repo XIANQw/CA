@@ -1,22 +1,24 @@
 #include <stdlib.h>
 
 #include "alloc.h"
-#include "config.h"
 #include "mlvalues.h"
 #include "domain_state.h"
 #include <stdio.h>
+#include "gc.h"
 
 
-// mlvalue* caml_alloc(size_t size) {
-//   return aligned_alloc(8,size);
-// }
 
 mlvalue* caml_alloc(size_t size) {
   size = size / sizeof(mlvalue);
-  uint64_t total = Heap_size/sizeof(mlvalue);
-  if(Caml_state->alloc_ptr > total){
-    printf("error alloc, maxsize=%ld\n", total);
-    exit(0);
+  uint64_t total = Caml_state->heap_size/sizeof(mlvalue); 
+  if(Caml_state->alloc_ptr + size > total){ 
+    printf("Heap full, gc start\n");
+    gc(Caml_state->sp, Caml_state->stack);
+    printf("Gc finish, alloc_ptr=%ld\n", Caml_state->alloc_ptr);
+    if(Caml_state->alloc_ptr + size > total){
+      printf("After gc, alloc_ptr= %ld ,heap full\n", Caml_state->alloc_ptr);
+      exit(0);
+    }
   }
   mlvalue * res = Caml_state->heap_a + Caml_state->alloc_ptr;
   Caml_state->alloc_ptr += size;

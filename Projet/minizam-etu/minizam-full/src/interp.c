@@ -4,19 +4,15 @@
 
 #include "domain_state.h"
 #include "interp.h"
-#include "config.h"
-#include "mlvalues.h"
 #include "instruct.h"
 #include "alloc.h"
 #include "primitives.h"
 
 
-/* Helpers to manipulate the stack. Note that |sp| always point to the
-   first empty element in the stack; hence the prefix -- in POP, but
-   postfix ++ in PUSH. */
-#define POP_STACK() stack[--sp]
-#define PUSH_STACK(x) stack[sp++] = x
+
 // #define DEBUG
+#define sp Caml_state->sp
+#define env Caml_state->env
 
 
 mlvalue caml_interprete(code_t* prog) {
@@ -24,21 +20,25 @@ mlvalue caml_interprete(code_t* prog) {
   mlvalue* stack = Caml_state->stack;
   mlvalue accu = Val_long(0);
   // mlvalue env = Make_empty_env();
-  mlvalue env; Make_empty_env(env);
+  Make_empty_env(env);
 
-  register unsigned int sp = 0;
   register unsigned int pc = 0;
   unsigned int extra_args = 0;
   unsigned int trap_sp = 0;
 
   while(1) {
 
+
 #ifdef DEBUG
-      // printf("pc=%d accu=%s sp=%d extra_args=%d trap_sp=%d\n",
-      //        pc, val_to_str(accu), sp, extra_args, trap_sp);
-      
-      printf("pc=%d  accu=%s  sp=%d extra_args=%d trap_sp=%d stack=[",
-             pc, val_to_str(accu), sp, extra_args, trap_sp);
+      // printf("pc=%d accu=%s heap=%d sp=%d extra_args=%d trap_sp=%d\n",
+      //        pc, val_to_str(accu), Caml_state->alloc_ptr, sp, extra_args, trap_sp);
+      printf("pc=%d heap=%d sp=%d extra_args=%d trap_sp=%d ",
+             pc, Caml_state->alloc_ptr, sp, extra_args, trap_sp);
+      if(Is_long(accu)) printf("accu=%s\n", val_to_str(accu));
+      else printf("Tag(accu)=%ld\n", Tag(accu));
+      /*
+      printf("pc=%d  accu=%s heap=%d sp=%d extra_args=%d trap_sp=%d stack=[",
+             pc, val_to_str(accu), Caml_state->alloc_ptr, sp, extra_args, trap_sp);
 
       if (sp > 0) {
         printf("%s", val_to_str(stack[sp-1]));
@@ -47,7 +47,7 @@ mlvalue caml_interprete(code_t* prog) {
         printf(";%s", val_to_str(stack[i]));
       }
       printf("]  env=%s\n", val_to_str(env));
-      
+      */
       print_instr(prog, pc);
 #endif
     switch (prog[pc++]) {
@@ -222,14 +222,7 @@ mlvalue caml_interprete(code_t* prog) {
     }
 
     case OFFSETCLOSURE: {
-      // accu = make_closure(Long_val(Field(env,0)), env);
-      // Make_closure(accu, Long_val(Field(env,0)), env);
-      accu = caml_alloc(3 * sizeof(mlvalue)); 
-      mlvalue head = Make_header(2, WHITE, CLOSURE_T);
-      Field(accu, 0) =  head;
-      Field(accu, 1) = Val_long((((uint64_t)((((mlvalue*)(env))[0]))) >> 1)); 
-      Field(accu, 2) = env;
-      accu = Val_ptr(Ptr_val(accu)+1);
+      Make_closure(accu, Long_val(Field(env,0)), env);
       break;
     }
 
