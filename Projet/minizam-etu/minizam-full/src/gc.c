@@ -3,6 +3,13 @@
 #include "domain_state.h"
 #include <stdlib.h>
 #include "alloc.h"
+#include <stdio.h>
+
+#ifdef MARK_n_SWEEP
+
+#endif
+
+
 
 /*
  GC: 扫描stack, 对每个值判断是否是ptr, 如果是就判断ptr的tag是否 FWD_PTR_T. 
@@ -10,24 +17,19 @@
     例如: block是 [header|0, 1, 2, 3, NULL], 在堆上占用6个mlvalue的大小. header: |size(4)+color(white)+tag(BLOCK_t)|, tag= block_t, 我们可以在heap_b上创建这个block的copy,
     然后把老的block改成 [size+color+FWD_PTR_T|0, 1, 2, 3, newptr]. 这样对于之后stack上指向老objet的指针, 只需要让他的值变成老指针值向的值, 即new pointer.
 */
-
-
-int gc(size_t new_heap_size){
+#ifdef STOP_n_COPY
+void gc(){
     unsigned int sp = Caml_state->sp;
     mlvalue * stack = Caml_state->stack;
-
     mlvalue * tmp = Caml_state->heap_b;
     free(tmp);
     Caml_state->heap_b = Caml_state->heap_a;
-    Caml_state->heap_a = malloc(new_heap_size * sizeof(mlvalue));
+    Caml_state->heap_a = malloc(SIZE * sizeof(mlvalue));
     Caml_state->alloc_ptr = 0;
-    mlvalue new_object;
-    new_object = copy_obj(Caml_state->env);
-    Caml_state->env = new_object;
+    Caml_state->env = copy_obj(Caml_state->env);
     for(unsigned int i=0; i < sp; i++){
         stack[i] = copy_obj(stack[i]);
     }
-    return 0;
 }
 
 mlvalue copy_obj(mlvalue obj){
@@ -42,4 +44,23 @@ mlvalue copy_obj(mlvalue obj){
     New_ptr(obj) = new;
     return new;
 }
+
+void resize(){
+    size_t new_size = Caml_state->heap_size;
+    mlvalue * tmp = Caml_state->heap_a;
+    Caml_state->heap_a = malloc(new_size * sizeof(mlvalue));
+    Caml_state->alloc_ptr = 0;
+    unsigned int sp = Caml_state->sp;
+    mlvalue * stack = Caml_state->stack;
+    Caml_state->env = copy_obj(Caml_state->env);
+    for(unsigned int i=0; i < sp; i++){
+        stack[i] = copy_obj(stack[i]);
+    }
+    free(tmp);
+}
+
+#endif
+
+
+
 

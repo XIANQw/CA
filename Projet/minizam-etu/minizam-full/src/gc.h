@@ -2,7 +2,12 @@
 #define _GC_H
 
 #include "mlvalues.h"
+#define STOP_n_COPY
 
-int gc(size_t new_heap_size);
-mlvalue copy_obj(mlvalue obj);
+#ifdef STOP_n_COPY
+    void gc();
+    mlvalue copy_obj(mlvalue obj);
+    void resize();
+#endif
+
 #endif

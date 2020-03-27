@@ -7,28 +7,32 @@
 #include <stdio.h>
 #include "gc.h"
 
-size_t next_size = (size_t)(Heap_size/sizeof(mlvalue));
+#ifdef STOP_n_COPY
 
 mlvalue* caml_alloc(size_t size) {
   int had_gc = 0;
-  while (Caml_state->alloc_ptr + size > SIZE){
-    // printf("Heap full, size=%ld, next_size=%ld\n", SIZE, next_size);
-    SIZE = next_size;
-    gc(SIZE);
+  if (Caml_state->alloc_ptr + size > SIZE){
+    gc();
     had_gc = 1;
-    // printf("Gc: alloc_ptr=%ld, size=%ld, SIZE=%ld\n", Caml_state->alloc_ptr, size, SIZE);
-    if(Caml_state->alloc_ptr + size > SIZE) next_size = (size_t)(SIZE*1.5);
+    // printf("Gc: alloc_ptr=%ld, alloc_size=%ld, SIZE=%ld\n", Caml_state->alloc_ptr, size, SIZE);
   }
   if(had_gc && Caml_state->alloc_ptr >= SIZE/2){
-    // printf("alloc_ptr=%ld>=%ld\n", Caml_state->alloc_ptr, SIZE/2);
-    // next_size = (size_t)(SIZE*1.5);
+    SIZE = (size_t)(SIZE * 1.5);
+    resize();
+    // printf("resize: alloc_ptr=%ld, SIZE=%ld\n", Caml_state->alloc_ptr, SIZE);
   }
   else if(had_gc && Caml_state->alloc_ptr < SIZE/2){
-    // printf("alloc_ptr=%ld<%ld\n", Caml_state->alloc_ptr, SIZE/2);
-    // next_size = (size_t)(SIZE/1.5);
+    SIZE = (size_t)(SIZE/1.5);
+    resize();
+    // printf("resize: alloc_ptr=%ld, SIZE=%ld\n", Caml_state->alloc_ptr, SIZE);
   }
   mlvalue * res = Caml_state->heap_a + Caml_state->alloc_ptr;
   Caml_state->alloc_ptr += size;
   return res;
 }
+#endif
 
+#ifdef MARK_n_SWEEP
+
+
+#endif
