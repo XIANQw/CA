@@ -5,9 +5,14 @@
 #include "mlvalues.h"
 #include "domain_state.h"
 #include <stdio.h>
-#include "gc.h"
 
 #ifdef STOP_n_COPY
+
+/*
+  Allouer les espaces mémoires directement sur notre tas qu'on a malloc au moment initial.
+  C'est juste rendre l'adresse de case du tas et incrémenter alloc_ptr.
+*/
+
 
 mlvalue* caml_alloc(size_t size) {
   int had_gc = 0;
@@ -33,6 +38,27 @@ mlvalue* caml_alloc(size_t size) {
 #endif
 
 #ifdef MARK_n_SWEEP
-
-
+/*
+  Paginer le mémoire et allouer les espaces mémoire sur le page actuel. S'il y a assez de espace.
+*/
+mlvalue * caml_alloc(size_t size){
+  mlvalue * res;
+  if(size * sizeof(mlvalue) > BIG_OBJ){
+    res = (mlvalue *)malloc(size * sizeof(mlvalue));
+    printf("res=%ld\n", res);
+    Append_block_list(res, Caml_state->big_obj);
+    return res;
+  }
+  // Exception 1: Page_actuel n'a pas assez d'espace
+  if(Caml_state->alloc_ptr + size > Page_size/sizeof(mlvalue)){
+    Caml_state->alloc_ptr = 0; // init alloc_ptr
+    Caml_state->page_actuel = (mlvalue *)malloc(Page_size); // Creer un bloc et ajoute dans freelist
+    Append_block_list(Caml_state->page_actuel, Caml_state->freelist);
+  }
+  res = Caml_state->page_actuel + Caml_state->alloc_ptr;
+  Caml_state->alloc_ptr += size;
+  return res;
+}
 #endif
+
+
