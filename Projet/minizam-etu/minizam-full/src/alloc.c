@@ -49,6 +49,7 @@ mlvalue * caml_alloc(size_t size){
         Append_bloc_list(res, Caml_state->big_obj);
         Caml_state->big_obj->alloc_ptr += size;
         *(res+size-1) = (mlvalue)bloc;
+        Caml_state->cur_size += size * sizeof(mlvalue);
         return res;
     }
     // Exception 1: Page_actuel n'a pas assez d'espace, cherche un bloc util dans freelist
@@ -56,10 +57,17 @@ mlvalue * caml_alloc(size_t size){
     while(cur_bloc && cur_bloc->alloc_ptr + size > Page_size/sizeof(mlvalue)){
         cur_bloc = cur_bloc->next;
     }
+    // Il n'y a pas de bloc disponible
     if(cur_bloc == NULL){
+        if(Caml_state->cur_size > Caml_state->heap_size){
+            printf("cur_size=%ld\n", Caml_state->cur_size);
+            gc_mark_sweep();
+            printf("Gc: cur_size=%ld\n", Caml_state->cur_size);
+        }
         mlvalue * newpage = (mlvalue *)malloc(Page_size);
         Append_bloc_list(newpage, Caml_state->freelist);
         cur_bloc = Caml_state->freelist;
+        Caml_state->cur_size += Page_size;
     }
     res = cur_bloc->page + cur_bloc->alloc_ptr;
     cur_bloc->alloc_ptr += size;

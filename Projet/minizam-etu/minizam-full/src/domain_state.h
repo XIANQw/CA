@@ -11,7 +11,7 @@ typedef struct _caml_domain_state {
     mlvalue* stack;
     unsigned int sp;
     mlvalue env;
-    
+
     #ifdef STOP_n_COPY
     mlvalue* heap_a;
     mlvalue* heap_b;
@@ -21,6 +21,8 @@ typedef struct _caml_domain_state {
     #ifdef MARK_n_SWEEP
     Bloc big_obj;
     Bloc freelist;
+    size_t heap_size;
+    size_t cur_size;
     #endif
 } caml_domain_state;
 

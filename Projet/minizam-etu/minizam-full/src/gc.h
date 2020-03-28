@@ -14,7 +14,8 @@ typedef enum {MARK_T, N_MARK_T} bloc_tag;
 struct _bloc{
     mlvalue * page;
     bloc_tag tag;
-    size_t alloc_ptr;    
+    size_t alloc_ptr;
+    Bloc prev; 
     Bloc next;
 };
 
@@ -29,7 +30,15 @@ struct _bloc{
     bloc->tag = N_MARK_T; \
     bloc->alloc_ptr = 0; \
     bloc->next = list; \
+    bloc->prev = NULL; \
+    if(list) list->prev = bloc;\
     list = bloc
+
+void sweep();
+Bloc delete_bloc(Bloc bloc, int flag);
+void mark_bloc(mlvalue m);
+void gc_mark_sweep();
+
 #endif
 
 #ifdef STOP_n_COPY

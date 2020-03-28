@@ -28,7 +28,6 @@ mlvalue caml_interprete(code_t* prog) {
 
   while(1) {
 
-
 #ifdef DEBUG
       // printf("pc=%d accu=%s heap=%d sp=%d extra_args=%d trap_sp=%d\n",
       //        pc, val_to_str(accu), Caml_state->alloc_ptr, sp, extra_args, trap_sp);

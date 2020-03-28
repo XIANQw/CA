@@ -12,6 +12,6 @@
 /* TODO: auto-growing stack, or throw stack overflow when needed. */
 #define Stack_size (8 * MB)
 #define Heap_size  (32 * KB)
-#define Page_size (64)
+#define Page_size (64 * KB)
 
 #endif

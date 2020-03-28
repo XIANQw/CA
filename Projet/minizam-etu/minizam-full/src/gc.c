@@ -7,12 +7,72 @@
 
 #ifdef MARK_n_SWEEP
 /*
-    MARK & SWEEP: allouer objet的时候就在最后一个case上存放他们所在的bloc的地址. 扫描stack, 把objet vivant所在的bloc的tag都变成 vivant. 
-    然后扫描所有bloc, 如果 bloc不是vivant, 就free掉
+    MARK & SWEEP: allouer objet的时候就在最后一个case上存放他们所在的bloc的地址.
+    1. definit Bloc (ok)
+    2. delete_bloc (ok)
+    3. mark
+    扫描stack, 把objet vivant所在的bloc的tag都从 N_MARK_T 变成 MARK_T. 
+    然后扫描freelist, 如果 bloc 不是 MARK_T, 就free掉 bloc->page, 然后删除掉bloc.
 */
 
+void gc_mark_sweep(){
+    mark(); sweep();
+}
 
 
+void sweep(){
+    Bloc tmp = Caml_state->freelist;
+    while(tmp){
+        if(tmp->tag == N_MARK_T){
+            tmp = delete_bloc(tmp, 1);
+            Caml_state->cur_size -= Page_size;
+        }
+        else tmp = tmp->next;
+    }
+    tmp = Caml_state->big_obj;
+    while(tmp){
+        if(tmp->tag == N_MARK_T){
+            size_t s = Size(Val_ptr(tmp->page+1));
+            Caml_state->cur_size -= (s+2)*sizeof(mlvalue);
+            tmp = delete_bloc(tmp, 0);
+        }
+        else tmp = tmp->next;
+    }
+}
+
+void mark(){
+    unsigned int sp = Caml_state->sp;
+    mlvalue * stack = Caml_state->stack;
+    for(unsigned int i=0; i<sp; i++){
+        mark_bloc(stack[i]);
+    }
+}
+
+
+void mark_bloc(mlvalue obj){
+    if(Is_long(obj)) return;
+    Bloc tmp = BLOC(obj);
+    tmp->tag = MARK_T;
+    for(unsigned int i=0; i<Size(obj); i++){
+        mark_bloc(Field(obj, i));
+    }
+}
+
+
+Bloc delete_bloc(Bloc bloc, int flag){
+    Bloc prev = bloc->prev, next = bloc->next;
+    if(next) next->prev = prev;
+    if(prev){
+        prev->next = next;
+    }else{
+        if(flag) Caml_state->freelist = next;
+        else Caml_state->big_obj = next;
+    } 
+    free(bloc->page);
+    bloc->page = NULL;
+    free(bloc);
+    return next;
+}
 
 #endif
 
