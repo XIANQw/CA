@@ -38,29 +38,25 @@ mlvalue eval_file(char* filename) {
 
 // test
 int main(){
-  caml_init_domain();
-  printf("page_acutel=%ld\n", Caml_state->page_actuel);
-  mlvalue data;
-  Make_block(data, 1, BLOCK_T);
-  Field0(data) = Val_long(1);
-  printf("page_acutel=%ld\n", Caml_state->page_actuel);
-  printf("alloc_ptr=%ld\n", Caml_state->alloc_ptr);
-  Make_block(data, 1, BLOCK_T);
-  Field0(data) = Val_long(2);
-  printf("page_acutel=%ld\n", Caml_state->page_actuel);
-  printf("alloc_ptr=%ld\n", Caml_state->alloc_ptr);
-  Make_block(data, 1, BLOCK_T);
-  Field0(data) = Val_long(3);
-  printf("page_acutel=%ld\n", Caml_state->page_actuel);
-  printf("alloc_ptr=%ld\n", Caml_state->alloc_ptr);
-  Make_block(data, 3, BLOCK_T);
-  printf("page_acutel=%ld\n", Caml_state->page_actuel);
-  printf("alloc_ptr=%ld\n", Caml_state->alloc_ptr);
-  for(int i=0; i<3; i++) Field(data, i) = Val_long(10+i);
-  printf("data1=%s\n", val_to_str(Val_ptr(Caml_state->freelist->next->page + 1)));
-  printf("data2=%s\n", val_to_str(Val_ptr(Caml_state->freelist->next->page + 4)));
-  printf("data3=%s\n", val_to_str(Val_ptr(Caml_state->freelist->page + 1)));
-  printf("data4=%s\n", val_to_str(Val_ptr(Caml_state->big_obj->page + 1)));
+    caml_init_domain();
+    printf("freelist=%ld\n", Caml_state->freelist);
+    mlvalue data;
+    Make_block(data, 10, BLOCK_T);
+    for(int i=0; i<10; i++){
+        Field(data, i) = Val_long(i+10);
+    }
+    printf("big_obj=%ld\n", Caml_state->big_obj);
+    printf("data_bloc=%ld\n", BLOC(data));
+    Make_block(data, 1, BLOCK_T);
+    Field0(data) = Val_long(10);
+    Make_block(data, 2, BLOCK_T);
+    Field0(data) = Val_long(2); Field1(data)=Val_long(3);
+    Bloc tmp = Caml_state->freelist;
+    while(tmp){
+        printf("tmp->page=%ld, ptr=%ld\n", tmp->page, tmp->alloc_ptr);
+        tmp = tmp->next;
+    }
+    return 0;
 }
 
 

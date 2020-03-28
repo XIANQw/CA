@@ -12,12 +12,6 @@ mlvalue* caml_alloc(size_t size);
 
 #ifdef MARK_n_SWEEP
 #define BIG_OBJ (Page_size/2)
-#define Malloc_block_list (Block_list)malloc(sizeof(struct _block_list))
-#define Append_block_list(newpage, list) \
-    Block_list bloc = Malloc_block_list; \
-    bloc->page = (mlvalue *)newpage; \
-    bloc->next = list; \
-    list = bloc
 #endif
 
 
