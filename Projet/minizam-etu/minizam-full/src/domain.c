@@ -24,6 +24,7 @@ void caml_init_domain() {
     #ifdef MARK_n_SWEEP
     Caml_state->big_obj = NULL;
     Caml_state->freelist = NULL;
+    Caml_state->page_list = NULL;
     Caml_state->heap_size =  512 * KB;
     Caml_state->cur_size = 0;
     #endif

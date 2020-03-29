@@ -20,19 +20,19 @@ mlvalue eval_file(char* filename) {
   return ret;
 }
 
-int main(int argc, char** argv) {
-  if (argc < 2) {
-    fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
-    exit(EXIT_FAILURE);
-  }
-  mlvalue res = eval_file(argv[1]);
-  // TODO: use getopt rather than this not-so-elegant strcmp.
-  if (argc >= 3 && strcmp(argv[2], "-res") == 0) {
-    char* res_str = val_to_str(res);
-    printf("%s\n", res_str);
-    free(res_str);
-  }
-}
+// int main(int argc, char** argv) {
+//   if (argc < 2) {
+//     fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
+//     exit(EXIT_FAILURE);
+//   }
+//   mlvalue res = eval_file(argv[1]);
+//   // TODO: use getopt rather than this not-so-elegant strcmp.
+//   if (argc >= 3 && strcmp(argv[2], "-res") == 0) {
+//     char* res_str = val_to_str(res);
+//     printf("%s\n", res_str);
+//     free(res_str);
+//   }
+// }
 
 
 mlvalue make_list(int n){
@@ -47,52 +47,85 @@ mlvalue make_list(int n){
     return head;
 }
 
-/*
+void print_bloc(Bloc tmp){
+    printf("tmp=%ld, tmp->page=%ld, ptr=%ld, size=%ld, prev=%ld, next=%ld\n", tmp, tmp->page, tmp->ptr, tmp->size, tmp->prev, tmp->next);
+}
+void print_bloc_list(Bloc bloclist){
+    Bloc tmp = bloclist;
+    while(tmp){
+        print_bloc(tmp);
+        tmp = tmp->next;
+    }
+}
+
+void print_page(Bloc bloc){
+    mlvalue * tmp = bloc->page;
+    size_t cpt = 1;
+    while(cpt < bloc->size){
+        if(*(tmp+cpt) == 0){
+            printf("cpt=%ld, null\n", cpt);
+            cpt += 1;
+        }else{
+            mlvalue obj = Val_ptr(tmp+cpt);
+            printf("cpt=%ld, obj=%ld, %s, size=%ld, color=%ld\n", cpt, obj, val_to_str(obj), Size(obj), Color(obj));
+            cpt += Size(obj) + 1;
+        }
+    }
+}
+
+void print_heap(Bloc heap){
+    Bloc pt = heap;
+    while(pt){
+        print_bloc(pt);
+        print_page(pt);
+        pt = pt->next;
+    }
+}
+
 // test
 int main(){
     caml_init_domain();
-    mlvalue data = make_list(5);
-    mlvalue data2, data3;
-    for(int i=0; i < 4; i++){
-        Make_block(data2, 2, BLOCK_T);
-        Field0(data2) = Val_long(1); Field1(data2) = Val_long(2);
+    printf("alloc_size=%ld\n", Caml_state->cur_size);
+    printf("=========1st allocation=============\n");
+    mlvalue data;
+    for(int i=0; i<2; i++){
+        Make_block(data, 3, BLOCK_T);
+        for(size_t j=0; j<Size(data); j++) Field(data, j) = Val_long(j+3);
+        Make_block(data, 5, BLOCK_T);
+        for(size_t j=0; j<Size(data); j++) Field(data, j) = Val_long(j+3);
     }
-    for(int i=0; i < 4; i++){
-        Make_block(data3, 5, BLOCK_T);
-        for(int i=0; i<5; i++) Field(data3, i) = Val_long(i+10);
-    }
-    printf("data=%ld\n", data);
-    printf("data2=%ld\n", data2);
-    mark_bloc(data); 
-    mark_bloc(data2);
-    Bloc tmp = Caml_state->freelist;
-    printf("freelist=%ld\n", tmp);
-    while(tmp){
-        printf("tmp=%ld, tmp->page=%ld, ptr=%ld, tag=%ld, prev=%ld, next=%ld\n", tmp, tmp->page, tmp->alloc_ptr, tmp->tag, tmp->prev, tmp->next);
-        tmp = tmp->next;
-    }
-    tmp = Caml_state->big_obj;
-    printf("bigobj=%ld\n", tmp);
-    while(tmp){
-        printf("tmp=%ld, tmp->page=%ld, ptr=%ld, tag=%ld, prev=%ld, next=%ld\n", tmp, tmp->page, tmp->alloc_ptr, tmp->tag, tmp->prev, tmp->next);
-        tmp = tmp->next;
-    }    
+    printf("bigobj\n");
+    print_heap(Caml_state->big_obj);
+    printf("page_list\n");
+    print_heap(Caml_state->page_list);
+    printf("freelist\n");
+    print_heap(Caml_state->freelist);
+    printf("alloc_size=%ld\n", Caml_state->cur_size);   
+    printf("=========1er sweep=============\n");
     sweep();
-    tmp = Caml_state->freelist;
-    printf("freelist=%ld\n", tmp);
-    while(tmp){
-        printf("tmp=%ld, tmp->page=%ld, ptr=%ld, tag=%ld, prev=%ld, next=%ld\n", tmp, tmp->page, tmp->alloc_ptr, tmp->tag, tmp->prev, tmp->next);
-        tmp = tmp->next;
+    printf("bigobj\n");
+    print_heap(Caml_state->big_obj);
+    printf("page_list\n");
+    print_heap(Caml_state->page_list);
+    printf("freelist\n");
+    print_heap(Caml_state->freelist);
+    printf("alloc_size=%ld\n", Caml_state->cur_size);
+    printf("=========2nd allocation =============\n");
+    Make_block(data, 3, BLOCK_T);
+    for(size_t j=0; j<Size(data); j++) Field(data, j) = Val_long(j+10);
+    for(int i=0; i<3; i++){
+        Make_block(data, 1, BLOCK_T);
+        for(size_t j=0; j<Size(data); j++) Field(data, j) = Val_long(j+10);
     }
-    tmp = Caml_state->big_obj;
-    printf("bigobj=%ld\n", tmp);
-    while(tmp){
-        printf("tmp=%ld, tmp->page=%ld, ptr=%ld, tag=%ld, prev=%ld, next=%ld\n", tmp, tmp->page, tmp->alloc_ptr, tmp->tag, tmp->prev, tmp->next);
-        tmp = tmp->next;
-    } 
+    printf("bigobj\n");
+    print_heap(Caml_state->big_obj);
+    printf("page_list\n");
+    print_heap(Caml_state->page_list);
+    printf("freelist\n");
+    print_heap(Caml_state->freelist);
+    printf("alloc_size=%ld\n", Caml_state->cur_size);
     return 0;
 }
-*/
 
 
 

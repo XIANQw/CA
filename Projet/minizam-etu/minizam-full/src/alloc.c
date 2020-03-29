@@ -1,9 +1,11 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "alloc.h"
 #include "config.h"
 #include "mlvalues.h"
 #include "domain_state.h"
+
 #include <stdio.h>
 
 #ifdef STOP_n_COPY
@@ -43,35 +45,38 @@ mlvalue* caml_alloc(size_t size) {
 */
 mlvalue * caml_alloc(size_t size){
     mlvalue * res;
+    Bloc bloc;
     // Si allouer un gros objet, faire malloc individuel
     if(size * sizeof(mlvalue) > (size_t)BIG_OBJ){
         res = (mlvalue *)malloc(size * sizeof(mlvalue));
-        Append_bloc_list(res, Caml_state->big_obj);
-        Caml_state->big_obj->alloc_ptr += size;
-        *(res+size-1) = (mlvalue)bloc;
+        Append_bloc_list(res, bloc, size, Caml_state->big_obj);
+        Caml_state->big_obj->ptr += size;
         Caml_state->cur_size += size * sizeof(mlvalue);
         return res;
     }
     // Exception 1: Page_actuel n'a pas assez d'espace, cherche un bloc util dans freelist
     Bloc cur_bloc = Caml_state->freelist;
-    while(cur_bloc && cur_bloc->alloc_ptr + size > Page_size/sizeof(mlvalue)){
+    while(cur_bloc && cur_bloc->ptr + size > cur_bloc->size){
         cur_bloc = cur_bloc->next;
     }
     // Il n'y a pas de bloc disponible
     if(cur_bloc == NULL){
-        if(Caml_state->cur_size > Caml_state->heap_size){
-            printf("cur_size=%ld\n", Caml_state->cur_size);
-            gc_mark_sweep();
-            printf("Gc: cur_size=%ld\n", Caml_state->cur_size);
-        }
+        // if(Caml_state->cur_size > Caml_state->heap_size){
+        //     printf("cur_size=%ld KB\n", Caml_state->cur_size/KB);
+        //     gc_mark_sweep();
+        //     printf("Gc: cur_size=%ld KB\n", Caml_state->cur_size/KB);
+        // }
         mlvalue * newpage = (mlvalue *)malloc(Page_size);
-        Append_bloc_list(newpage, Caml_state->freelist);
+        memset(newpage, 0, Page_size);
+        size_t size_bloc = Page_size/sizeof(mlvalue);
+        Append_bloc_list(newpage, bloc, size_bloc, Caml_state->freelist);
+        Append_bloc_list(newpage, bloc, size_bloc, Caml_state->page_list);
         cur_bloc = Caml_state->freelist;
-        Caml_state->cur_size += Page_size;
     }
-    res = cur_bloc->page + cur_bloc->alloc_ptr;
-    cur_bloc->alloc_ptr += size;
-    *(res+size-1) = (mlvalue)cur_bloc;
+    res = cur_bloc->page + cur_bloc->ptr;
+    cur_bloc->ptr += size;
+    Caml_state->cur_size += size*sizeof(mlvalue);
+    if(cur_bloc->ptr == cur_bloc->size) delete_bloc(cur_bloc, 1);
     return res;
 }
 #endif

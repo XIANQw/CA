@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include "config.h"
 
 typedef int64_t mlvalue;
 typedef uint64_t header_t;
@@ -48,6 +49,15 @@ bits  63    10 9     8 7   0
 #define Env_closure(c)  Field1(c)
 #define New_ptr(block) Field(block, Size(block))
 
+#ifdef STOP_n_COPY
+#define ADD_SIZE 2
+#endif
+
+#ifdef MARK_n_SWEEP
+#define ADD_SIZE 1
+#endif
+
+
 /* Structure of block:
      +--------+------+--------+
      | header | data | newptr |
@@ -57,13 +67,13 @@ index-1       0      size   size+1
 
 mlvalue make_empty_block(tag_t tag);
 #define Make_empty_block(accu, tag) \
-        accu = Val_ptr(caml_alloc(2)); \
+        accu = Val_ptr(caml_alloc(ADD_SIZE)); \
         Field(accu, 0) = Make_header(0, WHITE, tag); \
         accu = Val_ptr(Ptr_val(accu)+1)
 
 mlvalue make_block(size_t size, tag_t tag);
 #define Make_block(accu, size, tag) \
-        accu = Val_ptr(caml_alloc(size+2)); \
+        accu = Val_ptr(caml_alloc(size + ADD_SIZE)); \
         Field(accu, 0) = Make_header(size, WHITE, tag);\
         accu = Val_ptr(Ptr_val(accu)+1)
 
@@ -75,7 +85,7 @@ mlvalue make_block(size_t size, tag_t tag);
 
 mlvalue make_closure(uint64_t addr, mlvalue env);
 #define Make_closure(accu, addr, env) \
-        accu = Val_ptr(caml_alloc(4)); \
+        accu = Val_ptr(caml_alloc(2 + ADD_SIZE)); \
         Field(accu, 0) = Make_header(2, WHITE, CLOSURE_T); \
         Field(accu, 1) = Val_long(addr); \
         Field(accu, 2) = env; \

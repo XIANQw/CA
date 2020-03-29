@@ -1,34 +1,28 @@
 #ifndef _GC_H
 #define _GC_H
-
+#include <string.h>
 #include "mlvalues.h"
-
-// #define STOP_n_COPY
-
-#define MARK_n_SWEEP
+#include "config.h"
 
 #ifdef MARK_n_SWEEP
 typedef struct _bloc * Bloc;
-typedef enum {MARK_T, N_MARK_T} bloc_tag;
 
 struct _bloc{
     mlvalue * page;
-    bloc_tag tag;
-    size_t alloc_ptr;
+    size_t size;
+    size_t ptr;
     Bloc prev; 
     Bloc next;
 };
 
 #define Malloc_bloc (Bloc)malloc(sizeof(struct _bloc))
 
-// Quel bloc cet objet se trouve
-#define BLOC(obj) (Bloc)(New_ptr(obj))
 
-#define Append_bloc_list(newpage, list) \
-    Bloc bloc = Malloc_bloc; \
+#define Append_bloc_list(newpage, bloc, size_bloc, list) \
+    bloc = Malloc_bloc; \
     bloc->page = (mlvalue *)newpage; \
-    bloc->tag = N_MARK_T; \
-    bloc->alloc_ptr = 0; \
+    bloc->ptr = 0; \
+    bloc->size = size_bloc; \
     bloc->next = list; \
     bloc->prev = NULL; \
     if(list) list->prev = bloc;\
@@ -36,7 +30,8 @@ struct _bloc{
 
 void sweep();
 Bloc delete_bloc(Bloc bloc, int flag);
-void mark_bloc(mlvalue m);
+void mark_obj(mlvalue m);
+void init_heap();
 void gc_mark_sweep();
 
 #endif

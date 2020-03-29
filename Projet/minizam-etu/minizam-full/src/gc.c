@@ -10,51 +10,97 @@
     MARK & SWEEP: allouer objet的时候就在最后一个case上存放他们所在的bloc的地址.
     1. definit Bloc (ok)
     2. delete_bloc (ok)
-    3. mark
-    扫描stack, 把objet vivant所在的bloc的tag都从 N_MARK_T 变成 MARK_T. 
-    然后扫描freelist, 如果 bloc 不是 MARK_T, 就free掉 bloc->page, 然后删除掉bloc.
+    3. init
+    扫描espace-pagine, 把所有objet变成WHITE.
+    4. mark
+    扫描stack, 把objet vivant的objet 从 WHITE 变成 BLACK.
+    5. sweep
+    扫描espace-pagine, 把 WHITE 的objet的 adress和size 组成Bloc加入freelist中
+    6. alloc
+    优先从freelist中找, 如果有能用的就返回bloc->page用. bloc要是满了就从freelist中删掉, 不然freelist会越来越长
 */
 
-void gc_mark_sweep(){
-    mark(); sweep();
+void sweep_page(){
+    Bloc pt = Caml_state->page_list;
+    while(pt){
+        mlvalue * tmp = pt->page+1;
+        size_t cpt = 0;
+        while(cpt < pt->size){
+            if(*(tmp+cpt) == 0) cpt++;
+            else{
+                mlvalue obj = Val_ptr(tmp+cpt);
+                if(Color(obj) == WHITE){
+                    Bloc bloc;
+                    Append_bloc_list(Ptr_val(obj)-1, bloc, Size(obj)+1, Caml_state->freelist);
+                    Caml_state->cur_size -= (Size(obj)+1)*sizeof(mlvalue);
+                }
+                cpt += Size(obj) + 1;
+            }
+        }
+        pt = pt->next;
+    }
 }
 
+void sweep_bigobj(){
+    Bloc pt = Caml_state->big_obj;
+    while(pt){
+        mlvalue obj = Val_ptr(pt->page+1);
+        if(Color(obj) == WHITE){
+            Bloc bloc;
+            Append_bloc_list(Ptr_val(obj) - 1, bloc, Size(obj)+1, Caml_state->freelist);
+            pt = delete_bloc(pt, 0);
+            Caml_state->cur_size -= (Size(obj)+1)*sizeof(mlvalue);
+        }else{
+            pt = pt->next;
+        }
+    }
+}
 
 void sweep(){
-    Bloc tmp = Caml_state->freelist;
-    while(tmp){
-        if(tmp->tag == N_MARK_T){
-            tmp = delete_bloc(tmp, 1);
-            Caml_state->cur_size -= Page_size;
-        }
-        else tmp = tmp->next;
-    }
-    tmp = Caml_state->big_obj;
-    while(tmp){
-        if(tmp->tag == N_MARK_T){
-            size_t s = Size(Val_ptr(tmp->page+1));
-            Caml_state->cur_size -= (s+2)*sizeof(mlvalue);
-            tmp = delete_bloc(tmp, 0);
-        }
-        else tmp = tmp->next;
-    }
+    sweep_bigobj();
+    sweep_page();
 }
 
 void mark(){
     unsigned int sp = Caml_state->sp;
     mlvalue * stack = Caml_state->stack;
     for(unsigned int i=0; i<sp; i++){
-        mark_bloc(stack[i]);
+        mark_obj(stack[i]);
     }
 }
 
+void init_heap(){
+    Bloc pt = Caml_state->page_list;
+    while(pt){
+        mlvalue * tmp = pt->page+1;
+        size_t cpt = 0;
+        while(cpt < pt->size){
+            if(*(tmp+cpt) == 0){
+                cpt += 1;
+            }else{
+                mlvalue obj = Val_ptr(tmp+cpt);
+                Hd_val(obj) = Make_header(Size(obj), WHITE, Tag(obj));
+                cpt += Size(tmp+cpt) + 1;
+            }
+        }
+        pt = pt->next;
+    }
+}
 
-void mark_bloc(mlvalue obj){
+void init_big_obj(){
+    Bloc pt= Caml_state->big_obj;
+    while(pt){
+        mlvalue obj = Val_ptr(pt->page+1);
+        Hd_val(obj) = Make_header(Size(obj), WHITE, Tag(obj));
+        pt = pt->next;
+    }
+}
+
+void mark_obj(mlvalue obj){
     if(Is_long(obj)) return;
-    Bloc tmp = BLOC(obj);
-    tmp->tag = MARK_T;
+    Hd_val(obj) = Make_header(Size(obj), BLACK, Tag(obj));
     for(unsigned int i=0; i<Size(obj); i++){
-        mark_bloc(Field(obj, i));
+        mark_obj(Field(obj, i));
     }
 }
 
@@ -67,11 +113,17 @@ Bloc delete_bloc(Bloc bloc, int flag){
     }else{
         if(flag) Caml_state->freelist = next;
         else Caml_state->big_obj = next;
-    } 
-    free(bloc->page);
+    }
     bloc->page = NULL;
     free(bloc);
     return next;
+}
+
+void gc_mark_sweep(){
+    init_big_obj();
+    init_heap();
+    mark(); 
+    sweep();
 }
 
 #endif
