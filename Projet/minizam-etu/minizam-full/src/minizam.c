@@ -20,19 +20,19 @@ mlvalue eval_file(char* filename) {
   return ret;
 }
 
-// int main(int argc, char** argv) {
-//   if (argc < 2) {
-//     fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
-//     exit(EXIT_FAILURE);
-//   }
-//   mlvalue res = eval_file(argv[1]);
-//   // TODO: use getopt rather than this not-so-elegant strcmp.
-//   if (argc >= 3 && strcmp(argv[2], "-res") == 0) {
-//     char* res_str = val_to_str(res);
-//     printf("%s\n", res_str);
-//     free(res_str);
-//   }
-// }
+int main(int argc, char** argv) {
+  if (argc < 2) {
+    fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
+    exit(EXIT_FAILURE);
+  }
+  mlvalue res = eval_file(argv[1]);
+  // TODO: use getopt rather than this not-so-elegant strcmp.
+  if (argc >= 3 && strcmp(argv[2], "-res") == 0) {
+    char* res_str = val_to_str(res);
+    printf("%s\n", res_str);
+    free(res_str);
+  }
+}
 
 
 mlvalue make_list(int n){
@@ -83,49 +83,49 @@ void print_heap(Bloc heap){
 }
 
 // test
-int main(){
-    caml_init_domain();
-    printf("alloc_size=%ld\n", Caml_state->cur_size);
-    printf("=========1st allocation=============\n");
-    mlvalue data;
-    for(int i=0; i<2; i++){
-        Make_block(data, 3, BLOCK_T);
-        for(size_t j=0; j<Size(data); j++) Field(data, j) = Val_long(j+3);
-        Make_block(data, 5, BLOCK_T);
-        for(size_t j=0; j<Size(data); j++) Field(data, j) = Val_long(j+3);
-    }
-    printf("bigobj\n");
-    print_heap(Caml_state->big_obj);
-    printf("page_list\n");
-    print_heap(Caml_state->page_list);
-    printf("freelist\n");
-    print_heap(Caml_state->freelist);
-    printf("alloc_size=%ld\n", Caml_state->cur_size);   
-    printf("=========1er sweep=============\n");
-    sweep();
-    printf("bigobj\n");
-    print_heap(Caml_state->big_obj);
-    printf("page_list\n");
-    print_heap(Caml_state->page_list);
-    printf("freelist\n");
-    print_heap(Caml_state->freelist);
-    printf("alloc_size=%ld\n", Caml_state->cur_size);
-    printf("=========2nd allocation =============\n");
-    Make_block(data, 3, BLOCK_T);
-    for(size_t j=0; j<Size(data); j++) Field(data, j) = Val_long(j+10);
-    for(int i=0; i<3; i++){
-        Make_block(data, 1, BLOCK_T);
-        for(size_t j=0; j<Size(data); j++) Field(data, j) = Val_long(j+10);
-    }
-    printf("bigobj\n");
-    print_heap(Caml_state->big_obj);
-    printf("page_list\n");
-    print_heap(Caml_state->page_list);
-    printf("freelist\n");
-    print_heap(Caml_state->freelist);
-    printf("alloc_size=%ld\n", Caml_state->cur_size);
-    return 0;
-}
+// int main(){
+//     caml_init_domain();
+//     printf("alloc_size=%ld\n", Caml_state->cur_size);
+//     printf("=========1st allocation=============\n");
+//     mlvalue data;
+//     for(int i=0; i<2; i++){
+//         Make_block(data, 3, BLOCK_T);
+//         for(size_t j=0; j<Size(data); j++) Field(data, j) = Val_long(j+3);
+//         Make_block(data, 5, BLOCK_T);
+//         for(size_t j=0; j<Size(data); j++) Field(data, j) = Val_long(j+3);
+//     }
+//     printf("bigobj\n");
+//     print_heap(Caml_state->big_obj);
+//     printf("page_list\n");
+//     print_heap(Caml_state->page_list);
+//     printf("freelist\n");
+//     print_heap(Caml_state->freelist);
+//     printf("alloc_size=%ld\n", Caml_state->cur_size);   
+//     printf("=========1er sweep=============\n");
+//     sweep();
+//     printf("bigobj\n");
+//     print_heap(Caml_state->big_obj);
+//     printf("page_list\n");
+//     print_heap(Caml_state->page_list);
+//     printf("freelist\n");
+//     print_heap(Caml_state->freelist);
+//     printf("alloc_size=%ld\n", Caml_state->cur_size);
+//     printf("=========2nd allocation =============\n");
+//     Make_block(data, 3, BLOCK_T);
+//     for(size_t j=0; j<Size(data); j++) Field(data, j) = Val_long(j+10);
+//     for(int i=0; i<3; i++){
+//         Make_block(data, 1, BLOCK_T);
+//         for(size_t j=0; j<Size(data); j++) Field(data, j) = Val_long(j+10);
+//     }
+//     printf("bigobj\n");
+//     print_heap(Caml_state->big_obj);
+//     printf("page_list\n");
+//     print_heap(Caml_state->page_list);
+//     printf("freelist\n");
+//     print_heap(Caml_state->freelist);
+//     printf("alloc_size=%ld\n", Caml_state->cur_size);
+//     return 0;
+// }
 
 
 

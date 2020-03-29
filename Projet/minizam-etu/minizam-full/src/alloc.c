@@ -61,11 +61,11 @@ mlvalue * caml_alloc(size_t size){
     }
     // Il n'y a pas de bloc disponible
     if(cur_bloc == NULL){
-        // if(Caml_state->cur_size > Caml_state->heap_size){
-        //     printf("cur_size=%ld KB\n", Caml_state->cur_size/KB);
-        //     gc_mark_sweep();
-        //     printf("Gc: cur_size=%ld KB\n", Caml_state->cur_size/KB);
-        // }
+        if(Caml_state->cur_size > Caml_state->heap_size){
+            // printf("cur_size=%ld KB\n", Caml_state->cur_size/KB);
+            gc_mark_sweep();
+            // printf("Gc: cur_size=%ld KB\n", Caml_state->cur_size/KB);
+        }
         mlvalue * newpage = (mlvalue *)malloc(Page_size);
         memset(newpage, 0, Page_size);
         size_t size_bloc = Page_size/sizeof(mlvalue);

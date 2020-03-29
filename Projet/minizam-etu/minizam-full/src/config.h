@@ -14,7 +14,7 @@
 
 #define Heap_size  (32 * KB)
 
-#define Page_size (64)
+#define Page_size (64 * KB)
 
 // #define STOP_n_COPY
 
