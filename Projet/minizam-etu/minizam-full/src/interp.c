@@ -11,13 +11,11 @@
 
 
 // #define DEBUG
-#define sp Caml_state->sp
 #define env Caml_state->env
 
 
 mlvalue caml_interprete(code_t* prog) {
 
-  mlvalue* stack = Caml_state->stack;
   mlvalue accu = Val_long(0);
   // mlvalue env = Make_empty_env();
   Make_empty_env(env);
@@ -29,21 +27,21 @@ mlvalue caml_interprete(code_t* prog) {
   while(1) {
 
 #ifdef DEBUG
-      // printf("pc=%d accu=%s heap=%d sp=%d extra_args=%d trap_sp=%d\n",
-      //        pc, val_to_str(accu), Caml_state->alloc_ptr, sp, extra_args, trap_sp);
-      printf("pc=%d heap=%d sp=%d extra_args=%d trap_sp=%d ",
-             pc, Caml_state->alloc_ptr, sp, extra_args, trap_sp);
+      // printf("pc=%d accu=%s heap=%d Sp=%d extra_args=%d trap_sp=%d\n",
+      //        pc, val_to_str(accu), Caml_state->alloc_ptr, Sp, extra_args, trap_sp);
+      printf("pc=%d heap=%d Sp=%d extra_args=%d trap_sp=%d ",
+             pc, Caml_state->alloc_ptr, Sp, extra_args, trap_sp);
       if(Is_long(accu)) printf("accu=%s\n", val_to_str(accu));
       else printf("Tag(accu)=%ld\n", Tag(accu));
       /*
-      printf("pc=%d  accu=%s heap=%d sp=%d extra_args=%d trap_sp=%d stack=[",
-             pc, val_to_str(accu), Caml_state->alloc_ptr, sp, extra_args, trap_sp);
+      printf("pc=%d  accu=%s heap=%d Sp=%d extra_args=%d trap_sp=%d Stack=[",
+             pc, val_to_str(accu), Caml_state->alloc_ptr, Sp, extra_args, trap_sp);
 
-      if (sp > 0) {
-        printf("%s", val_to_str(stack[sp-1]));
+      if (Sp > 0) {
+        printf("%s", val_to_str(Stack[Sp-1]));
       }
-      for (int i = sp-2; i >= 0; i--) {
-        printf(";%s", val_to_str(stack[i]));
+      for (int i = Sp-2; i >= 0; i--) {
+        printf(";%s", val_to_str(Stack[i]));
       }
       printf("]  env=%s\n", val_to_str(env));
       */
@@ -94,7 +92,7 @@ mlvalue caml_interprete(code_t* prog) {
       break;
 
     case ACC:
-      accu = stack[sp-prog[pc++]-1];
+      accu = Stack[Sp-prog[pc++]-1];
       break;
 
     case ENVACC:
@@ -105,13 +103,13 @@ mlvalue caml_interprete(code_t* prog) {
       // recuperer le nombre des arguments
       uint64_t n = prog[pc++];
       // laisser 3 cases pour env, pc, extra_args
-      sp += 3;
+      Sp += 3;
       for (uint64_t i = 0; i < n; i++) {
-        stack[sp - i - 1] = stack[sp - i - 3 - 1]; // tous les argus montent 3 cases
+        Stack[Sp - i - 1] = Stack[Sp - i - 3 - 1]; // tous les argus montent 3 cases
       }
-      stack[sp - n - 3] = env;
-      stack[sp - n - 2] = Val_long(pc);
-      stack[sp - n - 1] = Val_long(extra_args);
+      Stack[Sp - n - 3] = env;
+      Stack[Sp - n - 2] = Val_long(pc);
+      Stack[Sp - n - 1] = Val_long(extra_args);
       pc = Addr_closure(accu);
       env = Env_closure(accu);
       extra_args = n-1;
@@ -123,9 +121,9 @@ mlvalue caml_interprete(code_t* prog) {
       uint64_t m = prog[pc++];
       int delta = m - n;
       if(delta > 0){
-        sp -= delta;
+        Sp -= delta;
         for (int i = n - 1; i >= 0; i--) {
-          stack[sp - i - 1] = stack[sp - i - 1 + delta];
+          Stack[Sp - i - 1] = Stack[Sp - i - 1 + delta];
         }
       }
       pc = Addr_closure(accu);
@@ -271,7 +269,7 @@ mlvalue caml_interprete(code_t* prog) {
 
     case ASSIGN: {
       uint64_t n = prog[pc++];
-      stack[sp-n-1] = accu;
+      Stack[Sp-n-1] = accu;
       accu = Unit;
       break;
     }
@@ -282,7 +280,7 @@ mlvalue caml_interprete(code_t* prog) {
       PUSH_STACK(env);
       PUSH_STACK(Val_long(trap_sp));
       PUSH_STACK(Val_long(addr));
-      trap_sp = sp;
+      trap_sp = Sp;
       break;
     }
 
@@ -299,7 +297,7 @@ mlvalue caml_interprete(code_t* prog) {
         fprintf(stderr, "Uncaught exception: %s\n", val_to_str(accu));
         exit(EXIT_FAILURE);
       } else {
-        sp = trap_sp;
+        Sp = trap_sp;
         pc = Long_val(POP_STACK());
         trap_sp = Long_val(POP_STACK());
         env = POP_STACK();

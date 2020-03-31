@@ -31,13 +31,14 @@ void print_bloc_list(Bloc bloclist){
 void print_page(Bloc bloc){
     mlvalue * tmp = bloc->page;
     size_t cpt = 1;
-    while(cpt < bloc->size){
+    while(cpt < bloc->size){    
         if(*(tmp+cpt) == 0){
             printf("cpt=%ld, null\n", cpt);
             cpt += 1;
         }else{
             mlvalue obj = Val_ptr(tmp+cpt);
-            printf("cpt=%ld, obj=%ld, %s, size=%ld, color=%ld\n", cpt, obj, val_to_str(obj), Size(obj), Color(obj));
+            cpt += Size(obj) + 1;
+            printf("cpt=%ld, obj=%ld, %s, size=%ld, color=%ld, gene=%ld\n", cpt, obj, val_to_str(obj), Size(obj), Color(obj), Gene(obj));
             cpt += Size(obj) + 1;
         }
     }

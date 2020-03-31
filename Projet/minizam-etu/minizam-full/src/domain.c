@@ -16,16 +16,19 @@ void caml_init_domain() {
     #if (defined STOP_n_COPY) || (defined GENERAL) 
     Caml_state->heap_size = (size_t)(Heap_size/sizeof(mlvalue));
     Caml_state->heap_a = malloc(Heap_size);
-    Caml_state->heap_b = malloc(Heap_size);
+    Caml_state->heap_b = NULL;
     Caml_state->alloc_ptr = 0;
     #endif
 
-    #ifdef MARK_n_SWEEP
+    #if (defined MARK_n_SWEEP) || (defined GENERAL) 
     Caml_state->big_obj = NULL;
     Caml_state->freelist = NULL;
     Caml_state->page_list = NULL;
-    Caml_state->heap_size =  128 * KB;
     Caml_state->cur_size = 0;
+    #endif
+    
+    #ifdef MARK_n_SWEEP
+    Caml_state->heap_size =  128 * KB;
     #endif
 
 } 

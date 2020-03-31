@@ -78,7 +78,7 @@ void init_heap(){
                 cpt += 1;
             }else{
                 mlvalue obj = Val_ptr(tmp+cpt);
-                Hd_val(obj) = Make_header(Size(obj), WHITE, Tag(obj));
+                Hd_val(obj) = Make_header(Size(obj), WHITE, Gene(obj), Tag(obj));
                 cpt += Size(tmp+cpt) + 1;
             }
         }
@@ -90,20 +90,18 @@ void init_big_obj(){
     Bloc pt= Caml_state->big_obj;
     while(pt){
         mlvalue obj = Val_ptr(pt->page+1);
-        Hd_val(obj) = Make_header(Size(obj), WHITE, Tag(obj));
+        Hd_val(obj) = Make_header(Size(obj), WHITE, Gene(obj), Tag(obj));
         pt = pt->next;
     }
 }
 
 void mark_obj(mlvalue obj){
     if(Is_long(obj)) return;
-    Hd_val(obj) = Make_header(Size(obj), BLACK, Tag(obj));
+    Hd_val(obj) = Make_header(Size(obj), BLACK, Gene(obj), Tag(obj));
     for(unsigned int i=0; i<Size(obj); i++){
         mark_obj(Field(obj, i));
     }
 }
-
-
 
 void gc_mark_sweep(){
     init_big_obj();

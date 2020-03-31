@@ -30,6 +30,7 @@ bits  63    10 9      8          7   0
 */
 #define Tag_hd(hd)   ((hd) & 127)
 #define Gene_hd(hd)  (((hd) >> 7) & 1)
+#define Gene(v)  Gene_hd(Hd_val(v))
 #define Make_header(size,color, gene, tag) \
   ((header_t)(((size) << 10) | (((color) & 3) << 8) | (((gene) & 1) << 7) | ((tag) & 127)))
 
