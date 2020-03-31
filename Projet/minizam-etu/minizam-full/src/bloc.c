@@ -38,7 +38,7 @@ void print_page(Bloc bloc){
         }else{
             mlvalue obj = Val_ptr(tmp+cpt);
             cpt += Size(obj) + 1;
-            printf("cpt=%ld, obj=%ld, %s, size=%ld, color=%ld, gene=%ld\n", cpt, obj, val_to_str(obj), Size(obj), Color(obj), Gene(obj));
+            printf("cpt=%ld, obj=%ld, %s, size=%ld, color=%ld\n", cpt, obj, val_to_str(obj), Size(obj), Color(obj));
             cpt += Size(obj) + 1;
         }
     }
