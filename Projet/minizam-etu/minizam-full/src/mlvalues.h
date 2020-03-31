@@ -91,6 +91,8 @@ mlvalue make_closure(uint64_t addr, mlvalue env);
         Field(accu, 2) = env; \
         accu = Val_ptr(Ptr_val(accu)+1)
 
+mlvalue make_list(int n);
+
 
 #define Unit Val_long(0)
 

@@ -7,17 +7,16 @@
 
 #ifdef MARK_n_SWEEP
 /*
-    MARK & SWEEP: allouer objet的时候就在最后一个case上存放他们所在的bloc的地址.
+    MARK & SWEEP:
     1. definit Bloc (ok)
     2. delete_bloc (ok)
-    3. init
-    扫描espace-pagine, 把所有objet变成WHITE.
-    4. mark
-    扫描stack, 把objet vivant的objet 从 WHITE 变成 BLACK.
-    5. sweep
-    扫描espace-pagine, 把 WHITE 的objet的 adress和size 组成Bloc加入freelist中
-    6. alloc
-    优先从freelist中找, 如果有能用的就返回bloc->page用. bloc要是满了就从freelist中删掉, 不然freelist会越来越长
+    Si un bloc de freelist n'a plus d'espace, supprimer ce bloc depuis freelist et le libérer.
+    3. init (ok)
+    Parcourir espace-pagine, changer tous les colors d'objet à WHITE.
+    4. mark (ok)
+    Parcourir stack, changer les tags des objets vivants BLACK depuis WHITE.
+    5. sweep (ok)
+    Parcourir espace-pagine, ajouter les adresses des objets dont le color est WHITE à freelist.
 */
 
 void sweep_page(){
@@ -105,19 +104,6 @@ void mark_obj(mlvalue obj){
 }
 
 
-Bloc delete_bloc(Bloc bloc, int flag){
-    Bloc prev = bloc->prev, next = bloc->next;
-    if(next) next->prev = prev;
-    if(prev){
-        prev->next = next;
-    }else{
-        if(flag) Caml_state->freelist = next;
-        else Caml_state->big_obj = next;
-    }
-    bloc->page = NULL;
-    free(bloc);
-    return next;
-}
 
 void gc_mark_sweep(){
     init_big_obj();
@@ -131,13 +117,15 @@ void gc_mark_sweep(){
 
 
 /*
-    STOP & COPY: 扫描stack, 对每个值判断是否是ptr, 如果是就判断ptr的tag是否 FWD_PTR_T. 
-    不是FWD_PTR_T: 在to-space上创建一个copy, 然后把from_space上的版本的tag改成 FWD_PTR_T, 然后把指针指到to-space的Objet上.
-    例如: block是 [header|0, 1, 2, 3, NULL], 在堆上占用6个mlvalue的大小. header: |size(4)+color(white)+tag(BLOCK_t)|, tag= block_t, 我们可以在heap_b上创建这个block的copy,
-    然后把老的block改成 [size+color+FWD_PTR_T|0, 1, 2, 3, newptr]. 这样对于之后stack上指向老objet的指针, 只需要让他的值变成老指针值向的值, 即new pointer.
+    STOP & COPY: 
+    1. Parcourir stack, vérifier si stack[i] est pointeur. Si stack[i] est pointeur, alors vérifier si son tag est FWD_PTR_T. 
+    2. Sinon créer sa copie sur heap_b, changer son tag à FWD_PTR_T, faire stack[i] = copie.
+    Ex: block est [header|0, 1, 2, 3, NULL], s'occupe 6 cases de mlvalue. header: |size(4)+color(white)+tag(BLOCK_t)|. 
+    On créer un copie de block sur heap_b, et modifie le tag du block qui se trouve sur heap_a, et stocker l'adresse de nouvelle version
+    à le dernier case de block de vieux version. [size+color+FWD_PTR_T|0, 1, 2, 3, newptr].
 */
 #ifdef STOP_n_COPY
-void gc(){
+void gc_stop_copy(){
     unsigned int sp = Caml_state->sp;
     mlvalue * stack = Caml_state->stack;
     mlvalue * tmp = Caml_state->heap_b;

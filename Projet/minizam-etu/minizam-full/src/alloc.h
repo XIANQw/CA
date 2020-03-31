@@ -11,6 +11,7 @@ mlvalue* caml_alloc(size_t size);
 #endif
 
 #ifdef MARK_n_SWEEP
+#include "bloc.h"
 #define BIG_OBJ (Page_size/2)
 #endif
 

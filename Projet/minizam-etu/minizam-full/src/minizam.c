@@ -8,6 +8,7 @@
 #include "interp.h"
 #include "alloc.h"
 #include "gc.h"
+#include "bloc.h"
 
 /* Note that Caml_state is allocated by caml_init_domain but never
    freed. You might therefore not want to repeatedly call
@@ -35,52 +36,6 @@ int main(int argc, char** argv) {
 }
 
 
-mlvalue make_list(int n){
-    mlvalue head;
-    if(!n){
-        Make_empty_block(head, BLOCK_T);
-        return head;
-    }
-    Make_block(head, 2, BLOCK_T);
-    Field0(head) = Val_long(3);
-    Field1(head) = make_list(n - 1);
-    return head;
-}
-
-void print_bloc(Bloc tmp){
-    printf("tmp=%ld, tmp->page=%ld, ptr=%ld, size=%ld, prev=%ld, next=%ld\n", tmp, tmp->page, tmp->ptr, tmp->size, tmp->prev, tmp->next);
-}
-void print_bloc_list(Bloc bloclist){
-    Bloc tmp = bloclist;
-    while(tmp){
-        print_bloc(tmp);
-        tmp = tmp->next;
-    }
-}
-
-void print_page(Bloc bloc){
-    mlvalue * tmp = bloc->page;
-    size_t cpt = 1;
-    while(cpt < bloc->size){
-        if(*(tmp+cpt) == 0){
-            printf("cpt=%ld, null\n", cpt);
-            cpt += 1;
-        }else{
-            mlvalue obj = Val_ptr(tmp+cpt);
-            printf("cpt=%ld, obj=%ld, %s, size=%ld, color=%ld\n", cpt, obj, val_to_str(obj), Size(obj), Color(obj));
-            cpt += Size(obj) + 1;
-        }
-    }
-}
-
-void print_heap(Bloc heap){
-    Bloc pt = heap;
-    while(pt){
-        print_bloc(pt);
-        print_page(pt);
-        pt = pt->next;
-    }
-}
 
 // test
 // int main(){

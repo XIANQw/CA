@@ -19,7 +19,7 @@
 mlvalue* caml_alloc(size_t size) {
     int had_gc = 0;
     if (Caml_state->alloc_ptr + size > SIZE){
-        gc();
+        gc_stop_copy();
         had_gc = 1;
         // printf("Gc: alloc_ptr=%ld, alloc_size=%ld, SIZE=%ld\n", Caml_state->alloc_ptr, size, SIZE);
     }
@@ -41,12 +41,13 @@ mlvalue* caml_alloc(size_t size) {
 
 #ifdef MARK_n_SWEEP
 /*
-  Paginer le mémoire et allouer les espaces mémoire sur le page actuel. S'il y a assez de espace.
+  Chercher un bloc utile depuis freelist pour les objets normaux.
 */
 mlvalue * caml_alloc(size_t size){
     mlvalue * res;
     Bloc bloc;
-    // Si allouer un gros objet, faire malloc individuel
+    int had_gc = 0;
+    // Allouer un gros objet, faire malloc individuel
     if(size * sizeof(mlvalue) > (size_t)BIG_OBJ){
         res = (mlvalue *)malloc(size * sizeof(mlvalue));
         Append_bloc_list(res, bloc, size, Caml_state->big_obj);
@@ -54,17 +55,24 @@ mlvalue * caml_alloc(size_t size){
         Caml_state->cur_size += size * sizeof(mlvalue);
         return res;
     }
-    // Exception 1: Page_actuel n'a pas assez d'espace, cherche un bloc util dans freelist
+    // Cherche un bloc utile dans freelist
     Bloc cur_bloc = Caml_state->freelist;
     while(cur_bloc && cur_bloc->ptr + size > cur_bloc->size){
         cur_bloc = cur_bloc->next;
     }
-    // Il n'y a pas de bloc disponible
+    // Cas 1: Il n'y a pas de bloc disponible
     if(cur_bloc == NULL){
         if(Caml_state->cur_size > Caml_state->heap_size){
             // printf("cur_size=%ld KB\n", Caml_state->cur_size/KB);
             gc_mark_sweep();
+            had_gc = 1;
             // printf("Gc: cur_size=%ld KB\n", Caml_state->cur_size/KB);
+        }
+        if(had_gc && Caml_state->cur_size > Caml_state->heap_size/2){
+            Caml_state->heap_size *= 1.5;
+        }
+        else if(had_gc && Caml_state->cur_size < Caml_state->heap_size/2){
+            Caml_state->heap_size /= 1.5;
         }
         mlvalue * newpage = (mlvalue *)malloc(Page_size);
         memset(newpage, 0, Page_size);

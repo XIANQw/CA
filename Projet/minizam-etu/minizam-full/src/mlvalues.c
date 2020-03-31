@@ -27,6 +27,18 @@ mlvalue make_closure(uint64_t addr, mlvalue env) {
   return Val_ptr(block+1);
 }
 
+mlvalue make_list(int n){
+    mlvalue head;
+    if(!n){
+        Make_empty_block(head, BLOCK_T);
+        return head;
+    }
+    Make_block(head, 2, BLOCK_T);
+    Field0(head) = Val_long(3);
+    Field1(head) = make_list(n - 1);
+    return head;
+}
+
 
 void print_val(mlvalue val) {
   char* val_str = val_to_str(val);

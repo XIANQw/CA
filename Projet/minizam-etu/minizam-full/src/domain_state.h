@@ -5,6 +5,10 @@
 #include "gc.h"
 #include "alloc.h"
 
+#ifdef MARK_n_SWEEP
+#include "bloc.h"
+#endif
+
 
 typedef struct _caml_domain_state {
   /* Stack */
