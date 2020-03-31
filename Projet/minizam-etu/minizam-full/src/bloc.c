@@ -1,7 +1,7 @@
 #include "bloc.h"
 #include "domain_state.h"
 
-#ifdef MARK_n_SWEEP
+#if (defined MARK_n_SWEEP) || (defined GENERAL) 
 
 Bloc delete_bloc(Bloc bloc, int flag){
     Bloc prev = bloc->prev, next = bloc->next;

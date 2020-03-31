@@ -6,11 +6,10 @@
 #include "config.h"
 
 mlvalue* caml_alloc(size_t size);
-#ifdef STOP_n_COPY
-#define SIZE Caml_state->heap_size
-#endif
 
-#ifdef MARK_n_SWEEP
+#define SIZE Caml_state->heap_size
+
+#if (defined MARK_n_SWEEP) || (defined GENERAL) 
 #include "bloc.h"
 #define BIG_OBJ (Page_size/2)
 #endif

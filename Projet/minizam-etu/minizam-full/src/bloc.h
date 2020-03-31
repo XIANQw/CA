@@ -3,7 +3,7 @@
 
 #include "config.h"
 
-#ifdef MARK_n_SWEEP
+#if (defined MARK_n_SWEEP) || (defined GENERAL) 
 
 #include <stdio.h>
 #include <stdlib.h>

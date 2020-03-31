@@ -5,7 +5,7 @@
 #include "gc.h"
 #include "alloc.h"
 
-#ifdef MARK_n_SWEEP
+#if (defined MARK_n_SWEEP) || (defined GENERAL) 
 #include "bloc.h"
 #endif
 
@@ -16,14 +16,14 @@ typedef struct _caml_domain_state {
     unsigned int sp;
     mlvalue env;
 
-    #ifdef STOP_n_COPY
+    #if (defined STOP_n_COPY) || (defined GENERAL) 
     mlvalue* heap_a;
     mlvalue* heap_b;
     size_t heap_size;
     size_t alloc_ptr;
     #endif
 
-    #ifdef MARK_n_SWEEP
+    #if (defined MARK_n_SWEEP) || (defined GENERAL) 
     Bloc big_obj;
     Bloc freelist;
     Bloc page_list;

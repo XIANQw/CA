@@ -49,7 +49,7 @@ bits  63    10 9     8 7   0
 #define Env_closure(c)  Field1(c)
 #define New_ptr(block) Field(block, Size(block))
 
-#ifdef STOP_n_COPY
+#if (defined STOP_n_COPY) || (defined GENERAL) 
 #define ADD_SIZE 2
 #endif
 

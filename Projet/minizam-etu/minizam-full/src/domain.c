@@ -13,8 +13,7 @@ void caml_init_domain() {
     Caml_state->stack = malloc(Stack_size);
     Caml_state->sp = 0;
 
-
-    #ifdef STOP_n_COPY
+    #if (defined STOP_n_COPY) || (defined GENERAL) 
     Caml_state->heap_size = (size_t)(Heap_size/sizeof(mlvalue));
     Caml_state->heap_a = malloc(Heap_size);
     Caml_state->heap_b = malloc(Heap_size);
