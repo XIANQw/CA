@@ -20,4 +20,6 @@
 
 // #define MARK_n_SWEEP
 
+#define GENERAL
+
 #endif

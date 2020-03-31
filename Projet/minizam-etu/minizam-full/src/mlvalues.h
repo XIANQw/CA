@@ -21,15 +21,16 @@ typedef enum { ENV_T, CLOSURE_T, BLOCK_T, FWD_PTR_T } tag_t;
 #define Val_hd(hd) ((mlvalue)(hd))
 
 /* Structure of the header:
-     +--------+-------+-----+
-     | size   | color | tag |
-     +--------+-------+-----+
-bits  63    10 9     8 7   0
+     +--------+-------+----------+---+
+     | size   | color |generation|tag|
+     +--------+-------+----------+---+
+bits  63    10 9      8          7   0
 */
 
 #define Size_hd(hd)  ((hd) >> 10)
 #define Color_hd(hd) (((hd) >> 8) & 3)
-#define Tag_hd(hd)   ((hd) & 0xFF)
+#define Gene_hd(hd)  (((hd) >> 7) & 1)
+#define Tag_hd(hd)   ((hd) & 127)
 
 #define Hd_val(v) (((header_t*)(v))[-1])
 #define Field(v,n) (Ptr_val(v)[n])

@@ -1,6 +1,15 @@
 #include "gc_general.h"
 
+#ifdef GENERAL
+/*
+    GC general:
+    1. parcourir stack, stack[i]:
+    young, white, 那么copy到新heap上然后Color变成white->gray.
+    young, gray, 那么copy到新heap上然后Color变成Black.
+    young, black, 那么copy到page_list或big_obj上, Color变成white, generation变成old.
+    old, white -> old, black
 
+*/
 void gc_stop_copy(){
     unsigned int sp = Caml_state->sp;
     mlvalue * stack = Caml_state->stack;
@@ -41,3 +50,5 @@ void resize(){
     }
     free(tmp);
 }
+
+#endif
