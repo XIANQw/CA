@@ -16,7 +16,7 @@
 
 #define Page_size (64 * KB)
 
-#define STOP_n_COPY
+// #define STOP_n_COPY
 
 // #define MARK_n_SWEEP
 

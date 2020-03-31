@@ -8,6 +8,7 @@
 typedef int64_t mlvalue;
 typedef uint64_t header_t;
 typedef enum { WHITE, GRAY, BLACK } color_t;
+typedef enum { YOUNG, OLD } gene_t;
 typedef enum { ENV_T, CLOSURE_T, BLOCK_T, FWD_PTR_T } tag_t;
 
 /* If a mlvalue ends with 1, it's an integer, otherwise it's a pointer. */
@@ -20,17 +21,39 @@ typedef enum { ENV_T, CLOSURE_T, BLOCK_T, FWD_PTR_T } tag_t;
 #define Ptr_val(v) ((mlvalue*)(v))
 #define Val_hd(hd) ((mlvalue)(hd))
 
+#ifdef GENERAL
 /* Structure of the header:
      +--------+-------+----------+---+
      | size   | color |generation|tag|
      +--------+-------+----------+---+
 bits  63    10 9      8          7   0
 */
+#define Tag_hd(hd)   ((hd) & 127)
+#define Gene_hd(hd)  (((hd) >> 7) & 1)
+#define Make_header(size,color, gene, tag) \
+  ((header_t)(((size) << 10) | (((color) & 3) << 8) | (((gene) & 1) << 7) | ((tag) & 127)))
+
+#endif
+
+
+
+#if (defined MARK_n_SWEEP) || (defined STOP_n_COPY)
+/* Structure of the header:
+     +--------+-------+---+
+     | size   | color |tag|
+     +--------+-------+---+
+bits  63    10 9      8   0
+*/
+
+#define Tag_hd(hd)   ((hd) & 0xFF)
+#define Make_header(size,color,tag) \
+  ((header_t)(((size) << 10) | (((color) & 3) << 8) | ((tag) & 0xFF)))
+#endif
+
 
 #define Size_hd(hd)  ((hd) >> 10)
 #define Color_hd(hd) (((hd) >> 8) & 3)
-#define Gene_hd(hd)  (((hd) >> 7) & 1)
-#define Tag_hd(hd)   ((hd) & 127)
+
 
 #define Hd_val(v) (((header_t*)(v))[-1])
 #define Field(v,n) (Ptr_val(v)[n])
@@ -43,8 +66,7 @@ bits  63    10 9      8          7   0
 #define WHITE 0
 #define GRAY 1
 #define BLACK 2
-#define Make_header(size,color,tag)                                     \
-  ((header_t)(((size) << 10) | (((color) & 3) << 8) | ((tag) & 0xFF)))
+
 
 #define Addr_closure(c) Long_val(Field0(c))
 #define Env_closure(c)  Field1(c)
@@ -66,31 +88,54 @@ bits  63    10 9      8          7   0
 index-1       0      size   size+1
 */
 
-mlvalue make_empty_block(tag_t tag);
+
+#ifdef GENERAL
+#define Make_empty_block(accu, tag) \
+        accu = Val_ptr(caml_alloc(ADD_SIZE)); \
+        Field(accu, 0) = Make_header(0, WHITE, YOUNG, tag); \
+        accu = Val_ptr(Ptr_val(accu)+1)
+
+#define Make_block(accu, size, tag) \
+        accu = Val_ptr(caml_alloc(size + ADD_SIZE)); \
+        Field(accu, 0) = Make_header(size, WHITE, YOUNG, tag);\
+        accu = Val_ptr(Ptr_val(accu)+1)
+
+#define Make_closure(accu, addr, env) \
+        accu = Val_ptr(caml_alloc(2 + ADD_SIZE)); \
+        Field(accu, 0) = Make_header(2, WHITE, YOUNG, CLOSURE_T); \
+        Field(accu, 1) = Val_long(addr); \
+        Field(accu, 2) = env; \
+        accu = Val_ptr(Ptr_val(accu)+1)
+
+#endif
+
+#if (defined MARK_n_SWEEP) || (defined STOP_n_COPY)
+
 #define Make_empty_block(accu, tag) \
         accu = Val_ptr(caml_alloc(ADD_SIZE)); \
         Field(accu, 0) = Make_header(0, WHITE, tag); \
         accu = Val_ptr(Ptr_val(accu)+1)
 
-mlvalue make_block(size_t size, tag_t tag);
 #define Make_block(accu, size, tag) \
         accu = Val_ptr(caml_alloc(size + ADD_SIZE)); \
         Field(accu, 0) = Make_header(size, WHITE, tag);\
         accu = Val_ptr(Ptr_val(accu)+1)
 
-
-//#define Make_empty_env() make_empty_block(ENV_T)
-#define Make_empty_env(env) Make_empty_block(env, ENV_T)
-// #define Make_env(size) make_block(size,ENV_T)
-#define Make_env(env, size) Make_block(env, size, ENV_T)
-
-mlvalue make_closure(uint64_t addr, mlvalue env);
 #define Make_closure(accu, addr, env) \
         accu = Val_ptr(caml_alloc(2 + ADD_SIZE)); \
         Field(accu, 0) = Make_header(2, WHITE, CLOSURE_T); \
         Field(accu, 1) = Val_long(addr); \
         Field(accu, 2) = env; \
         accu = Val_ptr(Ptr_val(accu)+1)
+
+#endif
+
+
+
+#define Make_empty_env(env) Make_empty_block(env, ENV_T)
+
+#define Make_env(env, size) Make_block(env, size, ENV_T)
+
 
 mlvalue make_list(int n);
 

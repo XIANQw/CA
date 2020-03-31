@@ -173,7 +173,7 @@ mlvalue caml_interprete(code_t* prog) {
         for (unsigned int i = 0; i <= extra_args; i++) {
           Field(closure_env,i+1) = POP_STACK();
         }
-        accu = make_closure(pc-3,closure_env);
+        Make_closure(accu, pc-3, closure_env);
         extra_args = Long_val(POP_STACK());
         pc  = Long_val(POP_STACK());
         env = POP_STACK();
